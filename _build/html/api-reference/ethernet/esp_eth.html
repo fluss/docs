@@ -1,0 +1,266 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ETHERNET &mdash; Fluss API 1.0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Fluss API 1.0.8 documentation" href="../../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fluss API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">ETHERNET</a><ul>
+<li><a class="reference internal" href="#application-example">Application Example</a></li>
+<li><a class="reference internal" href="#phy-interfaces">PHY Interfaces</a><ul>
+<li><a class="reference internal" href="#phy-configuration-constants">PHY Configuration Constants</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#api-reference-ethernet">API Reference - Ethernet</a></li>
+<li><a class="reference internal" href="#api-reference-phy-common">API Reference - PHY Common</a></li>
+<li><a class="reference internal" href="#api-reference-phy-tlk110">API Reference - PHY TLK110</a></li>
+<li><a class="reference internal" href="#api-reference-phy-lan8720">API Reference - PHY LAN8720</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fluss API</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>ETHERNET</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api-reference/ethernet/esp_eth.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="ethernet">
+<h1>ETHERNET<a class="headerlink" href="#ethernet" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="application-example">
+<h2>Application Example<a class="headerlink" href="#application-example" title="Permalink to this headline">¶</a></h2>
+<p>Ethernet example: <a href="#id1"><span class="problematic" id="id2">:example:`ethernet/ethernet`</span></a>.</p>
+</div>
+<div class="section" id="phy-interfaces">
+<h2>PHY Interfaces<a class="headerlink" href="#phy-interfaces" title="Permalink to this headline">¶</a></h2>
+<p>The configured PHY model(s) are set in software by configuring the eth_config_t structure for the given PHY.</p>
+<p>Headers include a default configuration structure. These default configurations will need some members overriden or re-set before they can be used for a particular PHY hardware configuration. Consult the Ethernet example to see how this is done.</p>
+<blockquote>
+<div><ul class="simple">
+<li><a href="#id3"><span class="problematic" id="id4">:component_file:`ethernet/include/eth_phy/phy.h`</span></a> (common)</li>
+<li><a href="#id5"><span class="problematic" id="id6">:component_file:`ethernet/include/eth_phy/phy_tlk110.h`</span></a></li>
+<li><a href="#id7"><span class="problematic" id="id8">:component_file:`ethernet/include/eth_phy/phy_lan8720.h`</span></a></li>
+</ul>
+</div></blockquote>
+<div class="section" id="phy-configuration-constants">
+<h3>PHY Configuration Constants<a class="headerlink" href="#phy-configuration-constants" title="Permalink to this headline">¶</a></h3>
+</div>
+</div>
+<div class="section" id="api-reference-ethernet">
+<h2>API Reference - Ethernet<a class="headerlink" href="#api-reference-ethernet" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="api-reference-phy-common">
+<h2>API Reference - PHY Common<a class="headerlink" href="#api-reference-phy-common" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="api-reference-phy-tlk110">
+<h2>API Reference - PHY TLK110<a class="headerlink" href="#api-reference-phy-tlk110" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="api-reference-phy-lan8720">
+<h2>API Reference - PHY LAN8720<a class="headerlink" href="#api-reference-phy-lan8720" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cairin Michie.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.8',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

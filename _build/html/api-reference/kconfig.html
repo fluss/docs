@@ -1,0 +1,251 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Configuration Options &mdash; Fluss API 1.0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="Fluss API 1.0.8 documentation" href="../index.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Fluss API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Configuration Options</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#using-sdkconfig-defaults">Using sdkconfig.defaults</a></li>
+<li><a class="reference internal" href="#configuration-options-reference">Configuration Options Reference</a></li>
+<li><a class="reference internal" href="#customisations">Customisations</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Fluss API</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Configuration Options</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api-reference/kconfig.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="configuration-options">
+<h1>Configuration Options<a class="headerlink" href="#configuration-options" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>ESP-IDF uses <a class="reference external" href="https://www.kernel.org/doc/Documentation/kbuild/kconfig-language.txt">Kconfig</a> system to provide a compile-time configuration mechanism. Kconfig is based around options of several types: integer, string, boolean. Kconfig files specify dependencies between options, default values of the options, the way the options are grouped together, etc.</p>
+<p>Applications developers can use <code class="docutils literal"><span class="pre">make</span> <span class="pre">menuconfig</span></code> build target to edit components’ configuration. This configuration is saved inside <code class="docutils literal"><span class="pre">sdkconfig</span></code> file in the project root directory. Based on <code class="docutils literal"><span class="pre">sdkconfig</span></code>, application build targets will generate <code class="docutils literal"><span class="pre">sdkconfig.h</span></code> file in the build directory, and will make sdkconfig options available to component makefiles.</p>
+</div>
+<div class="section" id="using-sdkconfig-defaults">
+<h2>Using sdkconfig.defaults<a class="headerlink" href="#using-sdkconfig-defaults" title="Permalink to this headline">¶</a></h2>
+<p>When updating ESP-IDF version, it is not uncommon to find that new Kconfig options are introduced. When this happens, application build targets will offer an interactive prompt to select values for the new options. New values are then written into <code class="docutils literal"><span class="pre">sdkconfig</span></code> file. To supress interactive prompts, applications can either define <code class="docutils literal"><span class="pre">BATCH_BUILD</span></code> environment variable, which will cause all prompts to be suppressed. This is the same effect as that of <code class="docutils literal"><span class="pre">V</span></code> or <code class="docutils literal"><span class="pre">VERBOSE</span></code> variables. Alternatively, <code class="docutils literal"><span class="pre">defconfig</span></code> build target can be used to update configuration for all new variables to the default values.</p>
+<p>In some cases, such as when <code class="docutils literal"><span class="pre">sdkconfig</span></code> file is under revision control, the fact that <code class="docutils literal"><span class="pre">sdkconfig</span></code> file gets changed by the build system may be inconvenient. The build system offers a way to avoid this, in the form of <code class="docutils literal"><span class="pre">sdkconfig.defaults</span></code> file. This file is never touched by the build system, and must be created manually. It can contain all the options which matter for the given application. The format is the same as that of the <code class="docutils literal"><span class="pre">sdkconfig</span></code> file. Once <code class="docutils literal"><span class="pre">sdkconfig.defaults</span></code> is created, <code class="docutils literal"><span class="pre">sdkconfig</span></code> can be deleted and added to the ignore list of the revision control system (e.g. <code class="docutils literal"><span class="pre">.gitignore</span></code> file for git). Project build targets will automatically create <code class="docutils literal"><span class="pre">sdkconfig</span></code> file, populated with the settings from <code class="docutils literal"><span class="pre">sdkconfig.defaults</span></code> file, and the rest of the settings will be set to their default values. Note that when <code class="docutils literal"><span class="pre">make</span> <span class="pre">defconfig</span></code> is used, settings in sdkconfig will be overriden by the ones in <code class="docutils literal"><span class="pre">sdkconfig.defaults</span></code>. For more information, see <span class="xref std std-ref">custom-sdkconfig-defaults</span>.</p>
+</div>
+<div class="section" id="configuration-options-reference">
+<h2>Configuration Options Reference<a class="headerlink" href="#configuration-options-reference" title="Permalink to this headline">¶</a></h2>
+<p>Subsequent sections contain the list of available ESP-IDF options, automatically generated from Kconfig files. Note that depending on the options selected, some options listed here may not be visible by default in the interface of menuconfig.</p>
+<p>By convention, all option names are upper case with underscores. When Kconfig generates sdkconfig and sdkconfig.h files, option names are prefixed with <code class="docutils literal"><span class="pre">CONFIG_</span></code>. So if an option <code class="docutils literal"><span class="pre">ENABLE_FOO</span></code> is defined in a Kconfig file and selected in menuconfig, then sdkconfig and sdkconfig.h files will have <code class="docutils literal"><span class="pre">CONFIG_ENABLE_FOO</span></code> defined. In this reference, option names are also prefixed with <code class="docutils literal"><span class="pre">CONFIG_</span></code>, same as in the source code.</p>
+</div>
+<div class="section" id="customisations">
+<h2>Customisations<a class="headerlink" href="#customisations" title="Permalink to this headline">¶</a></h2>
+<p>Because IDF builds by default with <span class="xref std std-ref">warn-undefined-variables</span>, when the Kconfig tool generates Makefiles (the <code class="docutils literal"><span class="pre">auto.conf</span></code> file) its behaviour has been customised. In normal Kconfig, a variable which is set to “no” is undefined. In IDF’s version of Kconfig, this variable is defined in the Makefile but has an empty value.</p>
+<p>(Note that <code class="docutils literal"><span class="pre">ifdef</span></code> and <code class="docutils literal"><span class="pre">ifndef</span></code> can still be used in Makefiles, because they test if a variable is defined <em>and has a non-empty value</em>.)</p>
+<p>When generating header files for C &amp; C++, the behaviour is not customised - so <code class="docutils literal"><span class="pre">#ifdef</span></code> can be used to test if a boolean config item is set or not.</p>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cairin Michie.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'1.0.8',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

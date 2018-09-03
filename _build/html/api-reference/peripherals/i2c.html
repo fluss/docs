@@ -1,0 +1,392 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>I2C &mdash; Fluss API 1.0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Fluss API 1.0.8 documentation" href="../../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fluss API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">I2C</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a><ul>
+<li><a class="reference internal" href="#configure-driver">Configure Driver</a></li>
+<li><a class="reference internal" href="#install-driver">Install Driver</a></li>
+<li><a class="reference internal" href="#run-communication">Run Communication</a><ul>
+<li><a class="reference internal" href="#master-mode">Master Mode</a></li>
+<li><a class="reference internal" href="#slave-mode">Slave Mode</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#interrupt-handling">Interrupt Handling</a></li>
+<li><a class="reference internal" href="#going-beyond-defaults">Going Beyond Defaults</a></li>
+<li><a class="reference internal" href="#error-handling">Error Handling</a></li>
+<li><a class="reference internal" href="#delete-driver">Delete Driver</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#application-example">Application Example</a></li>
+<li><a class="reference internal" href="#api-reference">API Reference</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fluss API</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>I2C</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api-reference/peripherals/i2c.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="i2c">
+<h1>I2C<a class="headerlink" href="#i2c" title="Permalink to this headline">¶</a></h1>
+<p>An I2C (Inter-Integrated Circuit) bus can be used for communication with several external devices connected to the same bus as ESP32. There are two I2C controllers on board of the ESP32, each of which can be set to master mode or slave mode.</p>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The following sections will walk you through typical steps to configure and operate the I2C driver:</p>
+<ol class="arabic simple">
+<li><a class="reference internal" href="#i2c-api-configure-driver"><span class="std std-ref">Configure Driver</span></a> - select driver’s parameters like master or slave mode, set specific GPIO pins to act as SDA and SCL, set the clock speed, etc.</li>
+<li><a class="reference internal" href="#i2c-api-install-driver"><span class="std std-ref">Install Driver</span></a>- activate driver in master or slave mode to operate on one of the two I2C controllers available on ESP32.</li>
+<li><a class="reference internal" href="#i2c-api-run-communication"><span class="std std-ref">Run Communication</span></a>:<ol class="loweralpha">
+<li><a class="reference internal" href="#i2c-api-master-mode"><span class="std std-ref">Master Mode</span></a> - run communication acting as a master</li>
+<li><a class="reference internal" href="#i2c-api-slave-mode"><span class="std std-ref">Slave Mode</span></a> - get slave responding to messages from the master</li>
+</ol>
+</li>
+<li><a class="reference internal" href="#i2c-api-interrupt-handling"><span class="std std-ref">Interrupt Handling</span></a> - configure and service I2C interrupts.</li>
+<li><a class="reference internal" href="#i2c-api-going-beyond-defaults"><span class="std std-ref">Going Beyond Defaults</span></a> - adjust timing, pin configuration and other parameters of the I2C communication.</li>
+<li><a class="reference internal" href="#i2c-api-error-handling"><span class="std std-ref">Error Handling</span></a> - how to recognize and handle driver configuration and communication errors.</li>
+<li><a class="reference internal" href="#i2c-api-delete-driver"><span class="std std-ref">Delete Driver</span></a>- on communication end to free resources used by the I2C driver.</li>
+</ol>
+<p>The top level identification of an I2C driver is one of the two port numbers selected from <code class="xref cpp cpp-type docutils literal"><span class="pre">i2c_port_t</span></code>. The mode of operation for a given port is provided during driver configuration by selecting either “master” or “slave” from <code class="xref cpp cpp-type docutils literal"><span class="pre">i2c_mode_t</span></code>.</p>
+<div class="section" id="configure-driver">
+<span id="i2c-api-configure-driver"></span><h3>Configure Driver<a class="headerlink" href="#configure-driver" title="Permalink to this headline">¶</a></h3>
+<p>The first step to establishing I2C communication is to configure the driver. This is done by setting several parameters contained in <code class="xref cpp cpp-type docutils literal"><span class="pre">i2c_config_t</span></code> structure:</p>
+<ul>
+<li><p class="first">I2C <strong>operation mode</strong> - select either slave or master from <code class="xref cpp cpp-type docutils literal"><span class="pre">i2c_opmode_t</span></code></p>
+</li>
+<li><p class="first">Settings of the <strong>communication pins</strong>:</p>
+<blockquote>
+<div><ul class="simple">
+<li>GPIO pin numbers assigned to the SDA and SCL signals</li>
+<li>Whether to enable ESP32’s internal pull up for respective pins</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">I2C <strong>clock speed</strong>, if this configuration concerns the master mode</p>
+</li>
+<li><p class="first">If this configuration concerns the slave mode:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Whether <strong>10 bit address mode</strong> should be enabled</li>
+<li>The <strong>slave address</strong></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<p>Then, to initialize configuration for a given I2C port, call function <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_param_config()</span></code> with the port number and <code class="xref cpp cpp-type docutils literal"><span class="pre">i2c_config_t</span></code> structure as the function call parameters.</p>
+<p>At this stage <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_param_config()</span></code> also sets “behind the scenes” couple of other I2C configuration parameters to commonly used default values. To check what are the values and how to change them, see <a class="reference internal" href="#i2c-api-going-beyond-defaults"><span class="std std-ref">Going Beyond Defaults</span></a>.</p>
+</div>
+<div class="section" id="install-driver">
+<span id="i2c-api-install-driver"></span><h3>Install Driver<a class="headerlink" href="#install-driver" title="Permalink to this headline">¶</a></h3>
+<p>Having the configuration initialized, the next step is to install the I2C driver by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_driver_install()</span></code>. This function call requires the following parameters:</p>
+<ul class="simple">
+<li>The port number, one of the two ports available, selected from <code class="xref cpp cpp-type docutils literal"><span class="pre">i2c_port_t</span></code></li>
+<li>The operation mode, slave or master selected from <code class="xref cpp cpp-type docutils literal"><span class="pre">i2c_opmode_t</span></code></li>
+<li>Sizes of buffers that will be allocated for sending and receiving data <strong>in the slave mode</strong></li>
+<li>Flags used to allocate the interrupt</li>
+</ul>
+</div>
+<div class="section" id="run-communication">
+<span id="i2c-api-run-communication"></span><h3>Run Communication<a class="headerlink" href="#run-communication" title="Permalink to this headline">¶</a></h3>
+<p>With the I2C driver installed, ESP32 is ready to communicate with other I2C devices. Programming of communication depends on whether selected I2C port operates in a master or a slave mode.</p>
+<div class="section" id="master-mode">
+<span id="i2c-api-master-mode"></span><h4>Master Mode<a class="headerlink" href="#master-mode" title="Permalink to this headline">¶</a></h4>
+<p>ESP32’s I2C port working in the master made is responsible for establishing communication with slave I2C devices and sending commands to trigger actions by slaves, like doing a measurement and sending back a result.</p>
+<p>To organize this process the driver provides a container, called a “command link”, that should be populated with a sequence of commands and then passed to the I2C controller for execution.</p>
+<p><strong>Master Write</strong></p>
+<p>An example of building a commend link for I2C master sending n bytes to slave is shown below:</p>
+<p>The following describes how the command link for a “master write” is set up and what comes inside:</p>
+<ol class="arabic">
+<li><p class="first">The first step is to create a command link with <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_cmd_link_create()</span></code>.</p>
+<p>Then the command link is populated with series of data to be sent to the slave:</p>
+<ol class="arabic simple" start="2">
+<li><strong>Start bit</strong> - <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_master_start()</span></code></li>
+<li>Single byte <strong>slave address</strong> - <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_master_write_byte()</span></code>. The address is provided as an argument of this function call.</li>
+<li>One or more bytes of <strong>data</strong> as an argument of <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_master_write()</span></code>.</li>
+<li><strong>Stop bit</strong> - <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_master_stop()</span></code></li>
+</ol>
+<p>Both <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_master_write_byte()</span></code> and <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_master_write()</span></code> commands have additional argument defining whether slave should <strong>acknowledge</strong> received data or not.</p>
+</li>
+</ol>
+<ol class="arabic simple" start="6">
+<li>Execution of command link by I2C controller is triggered by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_master_cmd_begin()</span></code>.</li>
+<li>As the last step, after sending of the commands is finished, the resources used by the command link are released by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_cmd_link_delete()</span></code>.</li>
+</ol>
+<p><strong>Master Read</strong></p>
+<p>There is a similar sequence of steps for the master to read the data from a slave.</p>
+<p>When reading the data, instead of “i2c_master_read…”, the command link is populated with <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_master_read_byte()</span></code> and / or <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_master_read()</span></code>. Also, the last read is configured for not providing an acknowledge by the master.</p>
+<p><strong>Master Write or Read?</strong></p>
+<p>After sending a slave’s address, see step 3 on pictures above, the master either writes to or reads from the slave. The information what the master will actually do is hidden in the least significant bit of the slave’s address.</p>
+<p>Therefore the command link instructing the slave that the master will write the data contains the address like <code class="docutils literal"><span class="pre">(ESP_SLAVE_ADDR</span> <span class="pre">&lt;&lt;</span> <span class="pre">1)</span> <span class="pre">|</span> <span class="pre">I2C_MASTER_WRITE</span></code> and looks as follows:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">i2c_master_write_byte</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="p">(</span><span class="n">ESP_SLAVE_ADDR</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span><span class="p">)</span> <span class="o">|</span> <span class="n">I2C_MASTER_WRITE</span><span class="p">,</span> <span class="n">ACK_CHECK_EN</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>By similar token the command link to read from the slave looks as follows:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">i2c_master_write_byte</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="p">(</span><span class="n">ESP_SLAVE_ADDR</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span><span class="p">)</span> <span class="o">|</span> <span class="n">I2C_MASTER_READ</span><span class="p">,</span> <span class="n">ACK_CHECK_EN</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="slave-mode">
+<span id="i2c-api-slave-mode"></span><h4>Slave Mode<a class="headerlink" href="#slave-mode" title="Permalink to this headline">¶</a></h4>
+<p>The API provides functions to read and write data by the slave - * <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_slave_read_buffer()</span></code> and <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_slave_write_buffer()</span></code>. An example of using these functions is provided in <a href="#id1"><span class="problematic" id="id2">:example:`peripherals/i2c`</span></a>.</p>
+</div>
+</div>
+<div class="section" id="interrupt-handling">
+<span id="i2c-api-interrupt-handling"></span><h3>Interrupt Handling<a class="headerlink" href="#interrupt-handling" title="Permalink to this headline">¶</a></h3>
+<p>To register an interrupt handler, call function <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_isr_register()</span></code>, to delete the handler call <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_isr_free()</span></code>. Description of interrupts triggered by I2C controller is provided in the <a class="reference external" href="https://espressif.com/sites/default/files/documentation/esp32_technical_reference_manual_en.pdf">ESP32 Technical Reference Manual (PDF)</a>.</p>
+</div>
+<div class="section" id="going-beyond-defaults">
+<span id="i2c-api-going-beyond-defaults"></span><h3>Going Beyond Defaults<a class="headerlink" href="#going-beyond-defaults" title="Permalink to this headline">¶</a></h3>
+<p>There are couple of I2C communication parameters setup during driver configuration (when calling <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_param_config()</span></code>, see <a class="reference internal" href="#i2c-api-configure-driver"><span class="std std-ref">Configure Driver</span></a>), to some default commonly used values. Some parameters are also already configured in registers of the I2C controller. These parameters can be changed to user defined values by calling dedicated functions:</p>
+<ul>
+<li><p class="first">Period of SCL pulses being high and low - <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_set_period()</span></code></p>
+</li>
+<li><p class="first">SCL and SDA signal timing used during generation of start / stop signals - <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_set_start_timing()</span></code> / <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_set_stop_timing()</span></code></p>
+</li>
+<li><p class="first">Timing relationship between SCL and SDA signals when sampling by slave, as well as when transmitting by master - <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_set_data_timing()</span></code></p>
+</li>
+<li><p class="first">I2C timeout - <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_set_timeout()</span></code></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The timing values are defined in APB clock cycles. The frequency of APB is specified in <code class="xref cpp cpp-type docutils literal"><span class="pre">I2C_APB_CLK_FREQ</span></code>.</p>
+</div>
+</li>
+<li><p class="first">What bit, LSB or MSB, is transmitted / received first - <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_set_data_mode()</span></code> selectable out of modes defined in <code class="xref cpp cpp-type docutils literal"><span class="pre">i2c_trans_mode_t</span></code></p>
+</li>
+</ul>
+<p>Each one of the above functions has a <em>_get_</em> counterpart to check the currently set value.</p>
+<p>To see the default values of parameters setup during driver configuration, please refer to file <a href="#id3"><span class="problematic" id="id4">:component_file:`driver/i2c.c`</span></a> looking up defines with <code class="docutils literal"><span class="pre">_DEFAULT</span></code> suffix.</p>
+<p>With function <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_set_pin()</span></code> it is also possible to select different SDA and SCL pins and alter configuration of pull ups, changing what has been already entered with <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_param_config()</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">ESP32’s internal pull ups are in the range of some tens of kOhm, and as such in most cases insufficient for use as I2C pull ups by themselves. We suggest to add external pull ups as well, with values as described in the I2C standard.</p>
+</div>
+</div>
+<div class="section" id="error-handling">
+<span id="i2c-api-error-handling"></span><h3>Error Handling<a class="headerlink" href="#error-handling" title="Permalink to this headline">¶</a></h3>
+<p>Most of driver’s function return the <code class="docutils literal"><span class="pre">ESP_OK</span></code> on successful completion or a specific error code on a failure. It is a good practice to always check the returned values and implement the error handling. The driver is also printing out log messages, when e.g. checking the correctness of entered configuration, that contain explanation of errors. For details please refer to file <a href="#id5"><span class="problematic" id="id6">:component_file:`driver/i2c.c`</span></a> looking up defines with <code class="docutils literal"><span class="pre">_ERR_STR</span></code> suffix.</p>
+<p>Use dedicated interrupts to capture communication failures. For instance there is <code class="docutils literal"><span class="pre">I2C_TIME_OUT_INT</span></code> interrupt triggered when I2C takes too long to receive data. See <a class="reference internal" href="#i2c-api-interrupt-handling"><span class="std std-ref">Interrupt Handling</span></a> for related information.</p>
+<p>To reset internal hardware buffers in case of communication failure, you can use <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_reset_tx_fifo()</span></code> and <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_reset_rx_fifo()</span></code>.</p>
+</div>
+<div class="section" id="delete-driver">
+<span id="i2c-api-delete-driver"></span><h3>Delete Driver<a class="headerlink" href="#delete-driver" title="Permalink to this headline">¶</a></h3>
+<p>If the I2C communication is established with <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_driver_install()</span></code> for some specific period of time and then not required, the driver may be removed to free allocated resources by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">i2c_driver_delete()</span></code>.</p>
+</div>
+</div>
+<div class="section" id="application-example">
+<h2>Application Example<a class="headerlink" href="#application-example" title="Permalink to this headline">¶</a></h2>
+<p>I2C master and slave example: <a href="#id7"><span class="problematic" id="id8">:example:`peripherals/i2c`</span></a>.</p>
+</div>
+<div class="section" id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cairin Michie.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.8',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

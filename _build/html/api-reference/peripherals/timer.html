@@ -1,0 +1,312 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>TIMER &mdash; Fluss API 1.0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Fluss API 1.0.8 documentation" href="../../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fluss API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">TIMER</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#functional-overview">Functional Overview</a><ul>
+<li><a class="reference internal" href="#timer-initialization">Timer Initialization</a></li>
+<li><a class="reference internal" href="#timer-control">Timer Control</a></li>
+<li><a class="reference internal" href="#alarms">Alarms</a></li>
+<li><a class="reference internal" href="#interrupts">Interrupts</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#application-example">Application Example</a></li>
+<li><a class="reference internal" href="#api-reference">API Reference</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fluss API</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>TIMER</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api-reference/peripherals/timer.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="timer">
+<h1>TIMER<a class="headerlink" href="#timer" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>The ESP32 chip contains two hardware timer groups. Each group has two general-purpose hardware timers. They are all 64-bit generic timers based on 16-bit prescalers and 64-bit auto-reload-capable up / down counters.</p>
+</div>
+<div class="section" id="functional-overview">
+<h2>Functional Overview<a class="headerlink" href="#functional-overview" title="Permalink to this headline">¶</a></h2>
+<p>Typical steps to configure an operate the timer are described in the following sections:</p>
+<ul class="simple">
+<li><a class="reference internal" href="#timer-api-timer-initialization"><span class="std std-ref">Timer Initialization</span></a> - what parameters should be set up to get the timer working and what specific functionality is provided depending on the set up.</li>
+<li><a class="reference internal" href="#timer-api-timer-control"><span class="std std-ref">Timer Control</span></a> - how to read the timer’s value, pause / start the timer, and change how it operates.</li>
+<li><a class="reference internal" href="#timer-api-alarms"><span class="std std-ref">Alarms</span></a> - setting and using alarms.</li>
+<li><a class="reference internal" href="#timer-api-interrupts"><span class="std std-ref">Interrupts</span></a>- how to enable and use interrupts.</li>
+</ul>
+<div class="section" id="timer-initialization">
+<span id="timer-api-timer-initialization"></span><h3>Timer Initialization<a class="headerlink" href="#timer-initialization" title="Permalink to this headline">¶</a></h3>
+<p>The two timer groups on-board of the ESP32 are identified using <code class="xref cpp cpp-type docutils literal"><span class="pre">timer_group_t</span></code>. Individual timers in a group are identified with <code class="xref cpp cpp-type docutils literal"><span class="pre">timer_idx_t</span></code>. The two groups, each having two timers, provide the total of four individual timers to our disposal.</p>
+<p>Before starting the timer, it should be initialized by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">timer_init()</span></code>. This function should be provided with a structure <code class="xref cpp cpp-type docutils literal"><span class="pre">timer_config_t</span></code> to define how timer should operate. In particular the following timer’s parameters may be set:</p>
+<blockquote>
+<div><ul class="simple">
+<li><strong>Divider</strong>: How quickly the timer’s counter is “ticking”. This depends on the setting of <code class="xref cpp cpp-member docutils literal"><span class="pre">divider</span></code>, that will be used as divisor of the incoming 80 MHz APB_CLK clock.</li>
+<li><strong>Mode</strong>: If the the counter is incrementing or decrementing, defined using <code class="xref cpp cpp-member docutils literal"><span class="pre">counter_dir</span></code> by selecting one of values from <code class="xref cpp cpp-type docutils literal"><span class="pre">timer_count_dir_t</span></code>.</li>
+<li><strong>Counter Enable</strong>: If the counter is enabled, then it will start incrementing / decrementing immediately after calling <code class="xref cpp cpp-func docutils literal"><span class="pre">timer_init()</span></code>. This action is set using <code class="xref cpp cpp-member docutils literal"><span class="pre">counter_en</span></code> by selecting one of vales from <code class="xref cpp cpp-type docutils literal"><span class="pre">timer_start_t</span></code>.</li>
+<li><strong>Alarm Enable</strong>: Determined by the setting of <code class="xref cpp cpp-member docutils literal"><span class="pre">alarm_en</span></code>.</li>
+<li><strong>Auto Reload</strong>: Whether the counter should <code class="xref cpp cpp-member docutils literal"><span class="pre">auto_reload</span></code> a specific initial value on the timer’s alarm, or continue incrementing or decrementing.</li>
+<li><strong>Interrupt Type</strong>: Whether an interrupt is triggered on timer’s alarm. Set the value defined in <code class="xref cpp cpp-type docutils literal"><span class="pre">timer_intr_mode_t</span></code>.</li>
+</ul>
+</div></blockquote>
+<p>To get the current values of the timers settings, use function <code class="xref cpp cpp-func docutils literal"><span class="pre">timer_get_config()</span></code>.</p>
+</div>
+<div class="section" id="timer-control">
+<span id="timer-api-timer-control"></span><h3>Timer Control<a class="headerlink" href="#timer-control" title="Permalink to this headline">¶</a></h3>
+<p>Once the timer is configured and enabled, it is already “ticking”. To check it’s current value call <code class="xref cpp cpp-func docutils literal"><span class="pre">timer_get_counter_value()</span></code> or <code class="xref cpp cpp-func docutils literal"><span class="pre">timer_get_counter_time_sec()</span></code>. To set the timer to specific starting value call <code class="xref cpp cpp-func docutils literal"><span class="pre">timer_set_counter_value()</span></code>.</p>
+<p>The timer may be paused at any time by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">timer_pause()</span></code>. To start it again call <code class="xref cpp cpp-func docutils literal"><span class="pre">timer_start()</span></code>.</p>
+<p>To change how the timer operates you can call once more <code class="xref cpp cpp-func docutils literal"><span class="pre">timer_init()</span></code> described in section <a class="reference internal" href="#timer-api-timer-initialization"><span class="std std-ref">Timer Initialization</span></a>. Another option is to use dedicated functions to change individual settings:</p>
+<blockquote>
+<div><ul class="simple">
+<li><strong>Divider</strong> value - <code class="xref cpp cpp-func docutils literal"><span class="pre">timer_set_divider()</span></code>. <strong>Note:</strong> the timer should be paused when changing the divider to avoid unpredictable results. If the timer is already running, <code class="xref cpp cpp-func docutils literal"><span class="pre">timer_set_divider()</span></code> will first pause the timer, change the divider, and finally start the timer again.</li>
+<li><strong>Mode</strong> (whether the counter incrementing or decrementing) - <code class="xref cpp cpp-func docutils literal"><span class="pre">timer_set_counter_mode()</span></code></li>
+<li><strong>Auto Reload</strong> counter on alarm - <code class="xref cpp cpp-func docutils literal"><span class="pre">timer_set_auto_reload()</span></code></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="alarms">
+<span id="timer-api-alarms"></span><h3>Alarms<a class="headerlink" href="#alarms" title="Permalink to this headline">¶</a></h3>
+<p>To set an alarm, call function <code class="xref cpp cpp-func docutils literal"><span class="pre">timer_set_alarm_value()</span></code> and then enable it with <code class="xref cpp cpp-func docutils literal"><span class="pre">timer_set_alarm()</span></code>. The alarm may be also enabled during the timer initialization stage, when <code class="xref cpp cpp-func docutils literal"><span class="pre">timer_init()</span></code> is called.</p>
+<p>After the alarm is enabled and the timer reaches the alarm value, depending on configuration, the following two actions may happen:</p>
+<blockquote>
+<div><ul class="simple">
+<li>An interrupt will be triggered, if previously configured. See section <a class="reference internal" href="#timer-api-interrupts"><span class="std std-ref">Interrupts</span></a> how to configure interrupts.</li>
+<li>When <code class="xref cpp cpp-member docutils literal"><span class="pre">auto_reload</span></code> is enabled, the timer’s counter will be reloaded to start counting from specific initial value. The value to start should be set in advance with <code class="xref cpp cpp-func docutils literal"><span class="pre">timer_set_counter_value()</span></code>.</li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The alarm will be triggered immediately, if an alarm value is set and the timer has already passed this value.</p>
+</div>
+<p>To check what alarm value has been set up, call <code class="xref cpp cpp-func docutils literal"><span class="pre">timer_get_alarm_value()</span></code>.</p>
+</div>
+<div class="section" id="interrupts">
+<span id="timer-api-interrupts"></span><h3>Interrupts<a class="headerlink" href="#interrupts" title="Permalink to this headline">¶</a></h3>
+<p>Registration of the interrupt handler for a specific timer group and timer is done be calling <code class="xref cpp cpp-func docutils literal"><span class="pre">timer_isr_register()</span></code>.</p>
+<p>To enable interrupts for a timer group call <code class="xref cpp cpp-func docutils literal"><span class="pre">timer_group_intr_enable()</span></code>. To do it for a specific timer, call <code class="xref cpp cpp-func docutils literal"><span class="pre">timer_enable_intr()</span></code>. Disabling of interrupts is done with corresponding functions <code class="xref cpp cpp-func docutils literal"><span class="pre">timer_group_intr_disable()</span></code> and <code class="xref cpp cpp-func docutils literal"><span class="pre">timer_disable_intr()</span></code>.</p>
+<p>When servicing an interrupt within an ISR, the interrupt need to explicitly cleared. To do so, set the <code class="docutils literal"><span class="pre">TIMERGN.int_clr_timers.tM</span></code> structure defined in <a href="#id1"><span class="problematic" id="id2">:component_file:`soc/esp32/include/soc/timer_group_struct.h`</span></a>, where N is the timer group number [0, 1] and M is the timer number [0, 1]. For example to clear an interrupt for the timer 1 in the timer group 0, call the following:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">TIMERG0</span><span class="o">.</span><span class="n">int_clr_timers</span><span class="o">.</span><span class="n">t1</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>See the application example below how to use interrupts.</p>
+</div>
+</div>
+<div class="section" id="application-example">
+<h2>Application Example<a class="headerlink" href="#application-example" title="Permalink to this headline">¶</a></h2>
+<p>The 64-bit hardware timer example: <a href="#id3"><span class="problematic" id="id4">:example:`peripherals/timer_group`</span></a>.</p>
+</div>
+<div class="section" id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cairin Michie.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.8',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

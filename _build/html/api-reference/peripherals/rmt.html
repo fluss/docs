@@ -1,0 +1,377 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>RMT &mdash; Fluss API 1.0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Fluss API 1.0.8 documentation" href="../../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fluss API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">RMT</a><ul>
+<li><a class="reference internal" href="#configure-driver">Configure Driver</a><ul>
+<li><a class="reference internal" href="#common-parameters">Common Parameters</a></li>
+<li><a class="reference internal" href="#transmit-mode">Transmit Mode</a></li>
+<li><a class="reference internal" href="#receive-mode">Receive Mode</a></li>
+<li><a class="reference internal" href="#finalize-configuration">Finalize Configuration</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#transmit-data">Transmit Data</a></li>
+<li><a class="reference internal" href="#receive-data">Receive Data</a></li>
+<li><a class="reference internal" href="#change-operation-parameters">Change Operation Parameters</a><ul>
+<li><a class="reference internal" href="#parameters-common-to-transmit-and-receive-mode">Parameters Common to Transmit and Receive Mode</a></li>
+<li><a class="reference internal" href="#transmit-mode-parameters">Transmit Mode Parameters</a></li>
+<li><a class="reference internal" href="#receive-mode-parameters">Receive Mode Parameters</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#use-interrupts">Use Interrupts</a></li>
+<li><a class="reference internal" href="#uninstall-driver">Uninstall Driver</a></li>
+<li><a class="reference internal" href="#application-examples">Application Examples</a></li>
+<li><a class="reference internal" href="#api-reference">API Reference</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fluss API</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>RMT</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api-reference/peripherals/rmt.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="rmt">
+<h1>RMT<a class="headerlink" href="#rmt" title="Permalink to this headline">¶</a></h1>
+<p>The RMT (Remote Control) module driver can be used to send and receive infrared remote control signals. Due to flexibility of RMT module, the driver can also be used to generate or receive many other types of signals.</p>
+<p>The signal, which consists of a series of pulses, is generated by RMT’s transmitter based on a list of values. The values define the pulse duration and a binary level, see below. The transmitter can also provide a carrier and modulate it with provided pulses.</p>
+<p>The reverse operation is performed by the receiver, where a series of pulses is decoded into a list of values containing the pulse duration and binary level. A filter may be applied to remove high frequency noise from the input signal.</p>
+<p>There couple of typical steps to setup and operate the RMT and they are discussed in the following sections:</p>
+<ol class="arabic simple">
+<li><a class="reference internal" href="#configure-driver">Configure Driver</a></li>
+<li><a class="reference internal" href="#transmit-data">Transmit Data</a> or <a class="reference internal" href="#receive-data">Receive Data</a></li>
+<li><a class="reference internal" href="#change-operation-parameters">Change Operation Parameters</a></li>
+<li><a class="reference internal" href="#use-interrupts">Use Interrupts</a></li>
+</ol>
+<p>The RMT has eight channels numbered from zero to seven. Each channel is able to independently transmit or receive data. They are referred to using indexes defined in structure <code class="xref cpp cpp-type docutils literal"><span class="pre">rmt_channel_t</span></code>.</p>
+<div class="section" id="configure-driver">
+<h2>Configure Driver<a class="headerlink" href="#configure-driver" title="Permalink to this headline">¶</a></h2>
+<p>There are several parameters that define how particular channel operates. Most of these parameters are configured by setting specific members of <code class="xref cpp cpp-type docutils literal"><span class="pre">rmt_config_t</span></code> structure. Some of the parameters are common to both transmit or receive mode, and some are mode specific. They are all discussed below.</p>
+<div class="section" id="common-parameters">
+<h3>Common Parameters<a class="headerlink" href="#common-parameters" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>The <strong>channel</strong> to be configured, select one from the <code class="xref cpp cpp-type docutils literal"><span class="pre">rmt_channel_t</span></code> enumerator.</li>
+<li>The RMT <strong>operation mode</strong> - whether this channel is used to transmit or receive data, selected by setting a <strong>rmt_mode</strong> members to one of the values from <code class="xref cpp cpp-type docutils literal"><span class="pre">rmt_mode_t</span></code>.</li>
+<li>What is the <strong>pin number</strong> to transmit or receive RMT signals, selected by setting <strong>gpio_num</strong>.</li>
+<li>How many <strong>memory blocks</strong> will be used by the channel, set with <strong>mem_block_num</strong>.</li>
+<li>A <strong>clock divider</strong>, that will determine the range of pulse length generated by the RMT transmitter or discriminated by the receiver. Selected by setting <strong>clk_div</strong> to a value within [1 .. 255] range. The RMT source clock is typically APB CLK, 80Mhz by default.</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The period of a square wave after the clock divider is called a ‘tick’. The length of the pulses generated by the RMT transmitter or discriminated by the receiver is configured in number of ‘ticks’.</p>
+</div>
+<p>There are also couple of specific parameters that should be set up depending if selected channel is configured in <a class="reference internal" href="#transmit-mode">Transmit Mode</a> or <a class="reference internal" href="#receive-mode">Receive Mode</a>:</p>
+</div>
+<div class="section" id="transmit-mode">
+<h3>Transmit Mode<a class="headerlink" href="#transmit-mode" title="Permalink to this headline">¶</a></h3>
+<p>When configuring channel in transmit mode, set <strong>tx_config</strong> and the following members of <code class="xref cpp cpp-type docutils literal"><span class="pre">rmt_tx_config_t</span></code>:</p>
+<ul class="simple">
+<li>Transmit the currently configured data items in a loop - <strong>loop_en</strong></li>
+<li>Enable the RMT carrier signal - <strong>carrier_en</strong></li>
+<li>Frequency of the carrier in Hz - <strong>carrier_freq_hz</strong></li>
+<li>Duty cycle of the carrier signal in percent (%) - <strong>carrier_duty_percent</strong></li>
+<li>Level of the RMT output, when the carrier is applied - <strong>carrier_level</strong></li>
+<li>Enable the RMT output if idle - <strong>idle_output_en</strong></li>
+<li>Set the signal level on the RMT output if idle - <strong>idle_level</strong></li>
+</ul>
+</div>
+<div class="section" id="receive-mode">
+<h3>Receive Mode<a class="headerlink" href="#receive-mode" title="Permalink to this headline">¶</a></h3>
+<p>In receive mode, set <strong>rx_config</strong> and the following members of <code class="xref cpp cpp-type docutils literal"><span class="pre">rmt_rx_config_t</span></code>:</p>
+<ul class="simple">
+<li>Enable a filter on the input of the RMT receiver - <strong>filter_en</strong></li>
+<li>A threshold of the filter, set in the number of ticks - <strong>filter_ticks_thresh</strong>. Pulses shorter than this setting will be filtered out. Note, that the range of entered tick values is [0..255].</li>
+<li>A pulse length threshold that will turn the RMT receiver idle, set in number of ticks - <strong>idle_threshold</strong>. The receiver will ignore pulses longer than this setting.</li>
+</ul>
+</div>
+<div class="section" id="finalize-configuration">
+<h3>Finalize Configuration<a class="headerlink" href="#finalize-configuration" title="Permalink to this headline">¶</a></h3>
+<p>Once the <code class="xref cpp cpp-type docutils literal"><span class="pre">rmt_config_t</span></code> structure is populated with parameters, it should be then invoked with <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_config()</span></code> to make the configuration effective.</p>
+<p>The last configuration step is installation of the driver in memory by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_driver_install()</span></code>. If <code class="xref cpp cpp-type docutils literal"><span class="pre">rx_buf_size</span></code> parameter of this function is &gt; 0, then a ring buffer for incoming data will be allocated. A default ISR handler will be installed, see a note in <a class="reference internal" href="#use-interrupts">Use Interrupts</a>.</p>
+<p>Now, depending on how the channel is configured, we are ready to either <a class="reference internal" href="#transmit-data">Transmit Data</a> or <a class="reference internal" href="#receive-data">Receive Data</a>. This is described in next two sections.</p>
+</div>
+</div>
+<div class="section" id="transmit-data">
+<h2>Transmit Data<a class="headerlink" href="#transmit-data" title="Permalink to this headline">¶</a></h2>
+<p>Before being able to transmit some RMT pulses, we need to define the pulse pattern. The minimum pattern recognized by the RMT controller, later called an ‘item’, is provided in a structure <code class="xref cpp cpp-type docutils literal"><span class="pre">rmt_item32_t</span></code>, see <a href="#id1"><span class="problematic" id="id2">:component_file:`soc/esp32/include/soc/rmt_struct.h`</span></a>. Each item consists of two pairs of two values. The first value in a pair describes the signal duration in ticks and is 15 bits long, the second provides the signal level (high or low) and is contained in a single bit. A block of couple of items and the structure of an item is presented below.</p>
+<p>For a simple example how to define a block of items see <a href="#id3"><span class="problematic" id="id4">:example:`peripherals/rmt_tx`</span></a>.</p>
+<p>The items are provided to the RMT controller by calling function <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_write_items()</span></code>. This function also automatically triggers start of transmission. It may be called to wait for transmission completion or exit just after transmission start. In such case you can wait for the transmission end by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_wait_tx_done()</span></code>. This function does not limit the number of data items to transmit. It is using an interrupt to successively copy the new data chunks to RMT’s internal memory as previously provided data are sent out.</p>
+<p>Another way to provide data for transmission is by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_fill_tx_items()</span></code>. In this case transmission is not started automatically. To control the transmission process use <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_tx_start()</span></code> and <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_tx_stop()</span></code>. The number of items to sent is restricted by the size of memory blocks allocated in the RMT controller’s internal memory, see <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_set_mem_block_num()</span></code>.</p>
+</div>
+<div class="section" id="receive-data">
+<h2>Receive Data<a class="headerlink" href="#receive-data" title="Permalink to this headline">¶</a></h2>
+<p>Before starting the receiver we need some storage for incoming items. The RMT controller has 512 x 32-bits of internal RAM shared between all eight channels. In typical scenarios it is not enough as an ultimate storage for all incoming (and outgoing) items. Therefore this API supports retrieval of incoming items on the fly to save them in a ring buffer of a size defined by the user. The size is provided when calling <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_driver_install()</span></code> discussed above. To get a handle to this buffer call <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_get_ringbuf_handle()</span></code>.</p>
+<p>With the above steps complete we can start the receiver by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_rx_start()</span></code> and then move to checking what’s inside the buffer. To do so, you can use common FreeRTOS functions that interact with the ring buffer. Please see an example how to do it in <a href="#id5"><span class="problematic" id="id6">:example:`peripherals/rmt_nec_tx_rx`</span></a>.</p>
+<p>To stop the receiver, call <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_rx_stop()</span></code>.</p>
+</div>
+<div class="section" id="change-operation-parameters">
+<h2>Change Operation Parameters<a class="headerlink" href="#change-operation-parameters" title="Permalink to this headline">¶</a></h2>
+<p>Previously described function <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_config()</span></code> provides a convenient way to set several configuration parameters in one shot. This is usually done on application start. Then, when the application is running, the API provides an alternate way to update individual parameters by calling dedicated functions. Each function refers to the specific RMT channel provided as the first input parameter. Most of the functions have <cite>_get_</cite> counterpart to read back the currently configured value.</p>
+<div class="section" id="parameters-common-to-transmit-and-receive-mode">
+<h3>Parameters Common to Transmit and Receive Mode<a class="headerlink" href="#parameters-common-to-transmit-and-receive-mode" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Selection of a GPIO pin number on the input or output of the RMT - <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_set_pin()</span></code></li>
+<li>Number of memory blocks allocated for the incoming or outgoing data - <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_set_mem_pd()</span></code></li>
+<li>Setting of the clock divider - <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_set_clk_div()</span></code></li>
+<li>Selection of the clock source, note that currently one clock source is supported, the APB clock which is 80Mhz - <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_set_source_clk()</span></code></li>
+</ul>
+</div>
+<div class="section" id="transmit-mode-parameters">
+<h3>Transmit Mode Parameters<a class="headerlink" href="#transmit-mode-parameters" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Enable or disable the loop back mode for the transmitter - <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_set_tx_loop_mode()</span></code></li>
+<li>Binary level on the output to apply the carrier - <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_set_tx_carrier()</span></code>, selected from <code class="xref cpp cpp-type docutils literal"><span class="pre">rmt_carrier_level_t</span></code></li>
+<li>Determines the binary level on the output when transmitter is idle - <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_set_idle_level()</span></code>, selected from <code class="xref cpp cpp-type docutils literal"><span class="pre">rmt_idle_level_t</span></code></li>
+</ul>
+</div>
+<div class="section" id="receive-mode-parameters">
+<h3>Receive Mode Parameters<a class="headerlink" href="#receive-mode-parameters" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>The filter setting - <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_set_rx_filter()</span></code></li>
+<li>The receiver threshold setting - <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_set_rx_idle_thresh()</span></code></li>
+<li>Whether the transmitter or receiver is entitled to access RMT’s memory - <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_set_memory_owner()</span></code>, selection is from <code class="xref cpp cpp-type docutils literal"><span class="pre">rmt_mem_owner_t</span></code>.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="use-interrupts">
+<h2>Use Interrupts<a class="headerlink" href="#use-interrupts" title="Permalink to this headline">¶</a></h2>
+<p>Registering of an interrupt handler for the RMT controller is done be calling <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_isr_register()</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When calling <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_driver_install()</span></code> to use the system RMT driver, a default ISR is being installed. In such a case you cannot register a generic ISR handler with <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_isr_register()</span></code>.</p>
+</div>
+<p>The RMT controller triggers interrupts on four specific events describes below. To enable interrupts on these events, the following functions are provided:</p>
+<ul class="simple">
+<li>The RMT receiver has finished receiving a signal - <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_set_rx_intr_en()</span></code></li>
+<li>The RMT transmitter has finished transmitting the signal - <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_set_tx_intr_en()</span></code></li>
+<li>The number of events the transmitter has sent matches a threshold value <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_set_tx_thr_intr_en()</span></code></li>
+<li>Ownership to the RMT memory block has been violated - <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_set_err_intr_en()</span></code></li>
+</ul>
+<p>Setting or clearing an interrupt enable mask for specific channels and events may be also done by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_set_intr_enable_mask()</span></code> or <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_clr_intr_enable_mask()</span></code>.</p>
+<p>When servicing an interrupt within an ISR, the interrupt need to explicitly cleared. To do so, set specific bits described as <code class="docutils literal"><span class="pre">RMT.int_clr.val.chN_event_name</span></code> and defined as a <code class="docutils literal"><span class="pre">volatile</span> <span class="pre">struct</span></code> in <a href="#id7"><span class="problematic" id="id8">:component_file:`soc/esp32/include/soc/rmt_struct.h`</span></a>, where N is the RMT channel number [0, 7] and the <code class="docutils literal"><span class="pre">event_name</span></code> is one of four events described above.</p>
+<p>If you do not need an ISR anymore, you can deregister it by calling a function <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_isr_deregister()</span></code>.</p>
+</div>
+<div class="section" id="uninstall-driver">
+<h2>Uninstall Driver<a class="headerlink" href="#uninstall-driver" title="Permalink to this headline">¶</a></h2>
+<p>If the RMT driver has been installed with <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_driver_install()</span></code> for some specific period of time and then not required, the driver may be removed to free allocated resources by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">rmt_driver_uninstall()</span></code>.</p>
+</div>
+<div class="section" id="application-examples">
+<h2>Application Examples<a class="headerlink" href="#application-examples" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>A simple RMT TX example: <a href="#id9"><span class="problematic" id="id10">:example:`peripherals/rmt_tx`</span></a>.</li>
+<li>NEC remote control TX and RX example: <a href="#id11"><span class="problematic" id="id12">:example:`peripherals/rmt_nec_tx_rx`</span></a>.</li>
+</ul>
+</div>
+<div class="section" id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cairin Michie.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.8',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

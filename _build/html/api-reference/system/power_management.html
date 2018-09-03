@@ -1,0 +1,320 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Power Management &mdash; Fluss API 1.0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Fluss API 1.0.8 documentation" href="../../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fluss API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Power Management</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#configuration">Configuration</a></li>
+<li><a class="reference internal" href="#power-management-locks">Power Management Locks</a></li>
+<li><a class="reference internal" href="#power-management-algorithm-for-the-esp32">Power Management Algorithm for the ESP32</a></li>
+<li><a class="reference internal" href="#dynamic-frequency-scaling-and-peripheral-drivers">Dynamic Frequency Scaling and Peripheral Drivers</a></li>
+<li><a class="reference internal" href="#api-reference">API Reference</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fluss API</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>Power Management</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api-reference/system/power_management.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="power-management">
+<h1>Power Management<a class="headerlink" href="#power-management" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>Power management algorithm included in ESP-IDF can adjust APB frequency, CPU frequency, and put the chip into light sleep mode to run the application
+at smallest possible power consumption, given the requirements of application components.</p>
+<p>Application components can express their requirements by creating and acquiring power management locks.</p>
+<p>For instance, a driver for a peripheral clocked from APB can request the APB frequency to be set to 80 MHz, for the duration while the peripheral is used. Another example is that the RTOS will request the CPU to run at the highest configured frequency while there are tasks ready to run. Yet another example is a peripheral driver which needs interrupts to be enabled. Such driver can request light sleep to be disabled.</p>
+<p>Naturally, requesting higher APB or CPU frequency or disabling light sleep causes higher current consumption. Components should try to limit usage of power management locks to the shortest amount of time possible.</p>
+</div>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>Power management can be enabled at compile time, using <span class="xref std std-ref">CONFIG_PM_ENABLE</span> option.</p>
+<p>Enabling power management features comes at the cost of increased interrupt latency. Extra latency depends on a number of factors, among which are CPU frequency, single/dual core mode, whether frequency switch needs to be performed or not. Minimal extra latency is 0.2us (when CPU frequency is 240MHz, and frequency scaling is not enabled), maximum extra latency is 40us (when frequency scaling is enabled, and a switch from 40MHz to 80MHz is performed on interrupt entry).</p>
+<p>Dynamic frequency scaling (DFS) can be enabled in the application by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_pm_configure()</span></code> function. Its argument is a structure defining frequency scaling settings (for ESP32, minimum and maximum CPU frequencies). Alternatively, <span class="xref std std-ref">CONFIG_PM_DFS_INIT_AUTO</span> option can be enabled in menuconfig.  If enabled, maximal CPU frequency is determined by <span class="xref std std-ref">CONFIG_ESP32_DEFAULT_CPU_FREQ_MHZ</span> setting, and minimal CPU frequency is set to the XTAL frequency.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last"><code class="xref cpp cpp-func docutils literal"><span class="pre">esp_pm_configure()</span></code> function also has provisions for enabling automatic light sleep mode. However this feature is not fully supported yet, so <cite>esp_pm_configure</cite> will return an <cite>ESP_ERR_NOT_SUPPORTED</cite> if automatic light sleep is requested.</p>
+</div>
+</div>
+<div class="section" id="power-management-locks">
+<h2>Power Management Locks<a class="headerlink" href="#power-management-locks" title="Permalink to this headline">¶</a></h2>
+<p>As mentioned in the overview, applications can acquire/release locks to control the power management algorithm. When application takes a lock, power management algorithm operation is restricted in a way described below, for each lock. When the lock is released, such restriction is removed.</p>
+<p>Different parts of the application can take the same lock. In this case, lock mush be released the same number of times as it was acquired, in order for power managment algorithm to resume.</p>
+<p>In ESP32, three types of locks are supported:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">ESP_PM_CPU_FREQ_MAX</span></code></dt>
+<dd>Requests CPU frequency to be at the maximal value set via <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_pm_configure()</span></code>. For ESP32, this value can be set to 80, 160, or 240MHz.</dd>
+<dt><code class="docutils literal"><span class="pre">ESP_PM_APB_FREQ_MAX</span></code></dt>
+<dd>Requests APB frequency to be at the maximal supported value. For ESP32, this is 80 MHz.</dd>
+<dt><code class="docutils literal"><span class="pre">ESP_PM_NO_LIGHT_SLEEP</span></code></dt>
+<dd>Prevents automatic light sleep from being used. Note: currently taking this lock has no effect, as automatic light sleep is never used.</dd>
+</dl>
+</div>
+<div class="section" id="power-management-algorithm-for-the-esp32">
+<h2>Power Management Algorithm for the ESP32<a class="headerlink" href="#power-management-algorithm-for-the-esp32" title="Permalink to this headline">¶</a></h2>
+<p>When dynamic frequency scaling is enabled, CPU frequency will be switched as follows:</p>
+<ul class="simple">
+<li>If maximal CPU frequency (set using <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_pm_configure()</span></code> or <span class="xref std std-ref">CONFIG_ESP32_DEFAULT_CPU_FREQ_MHZ</span>) is 240 MHz:<ol class="arabic">
+<li>When <code class="docutils literal"><span class="pre">ESP_PM_CPU_FREQ_MAX</span></code> or <code class="docutils literal"><span class="pre">ESP_PM_APB_FREQ_MAX</span></code>  locks are acquired, CPU frequency will be 240 MHz, and APB frequency will be 80 MHz.</li>
+<li>Otherwise, frequency will be switched to the minimal value set using <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_pm_configure()</span></code> (usually, XTAL).</li>
+</ol>
+</li>
+<li>If maximal CPU frequency is 160 MHz:<ol class="arabic">
+<li>When <code class="docutils literal"><span class="pre">ESP_PM_CPU_FREQ_MAX</span></code> is acquired, CPU frequency is set to 160 MHz, and APB frequency to 80 MHz.</li>
+<li>When <code class="docutils literal"><span class="pre">ESP_PM_CPU_FREQ_MAX</span></code> is not acquired, but <code class="docutils literal"><span class="pre">ESP_PM_APB_FREQ_MAX</span></code> is, CPU and APB frequencies are set to 80 MHz.</li>
+<li>Otherwise, frequency will be switched to the minimal value set using <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_pm_configure()</span></code> (usually, XTAL).</li>
+</ol>
+</li>
+<li>If maximal CPU frequency is 80 MHz:<ol class="arabic">
+<li>When <code class="docutils literal"><span class="pre">ESP_PM_CPU_FREQ_MAX</span></code> or <code class="docutils literal"><span class="pre">ESP_PM_APB_FREQ_MAX</span></code>  locks are acquired, CPU and APB frequencies will be 80 MHz.</li>
+<li>Otherwise, frequency will be switched to the minimal value set using <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_pm_configure()</span></code> (usually, XTAL).</li>
+</ol>
+</li>
+</ul>
+</div>
+<div class="section" id="dynamic-frequency-scaling-and-peripheral-drivers">
+<h2>Dynamic Frequency Scaling and Peripheral Drivers<a class="headerlink" href="#dynamic-frequency-scaling-and-peripheral-drivers" title="Permalink to this headline">¶</a></h2>
+<p>When DFS is enabled, APB frequency can be changed several times within a single RTOS tick. Some peripherals can work normally even when APB frequency changes; some can not.</p>
+<p>The following peripherals can work even when APB frequency is changing:</p>
+<ul class="simple">
+<li>UART: if REF_TICK is used as clock source (see <cite>use_ref_tick</cite> member of <cite>uart_config_t</cite>).</li>
+<li>LEDC: if REF_TICK is used as clock source (see <code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_timer_config()</span></code> function).</li>
+<li>RMT: if REF_TICK is used as clock source. Currently the driver does not support REF_TICK, but it can be enabled by clearing <code class="docutils literal"><span class="pre">RMT_REF_ALWAYS_ON_CHx</span></code> bit for the respective channel.</li>
+</ul>
+<p>Currently, the following peripheral drivers are aware of DFS and will use <code class="docutils literal"><span class="pre">ESP_PM_APB_FREQ_MAX</span></code> lock for the duration of the transaction:</p>
+<ul class="simple">
+<li>SPI master</li>
+<li>SDMMC</li>
+</ul>
+<p>The following drivers will hold <code class="docutils literal"><span class="pre">ESP_PM_APB_FREQ_MAX</span></code> lock while the driver is enabled:</p>
+<ul class="simple">
+<li>SPI slave — between calls to <code class="xref cpp cpp-func docutils literal"><span class="pre">spi_slave_initialize()</span></code> and cpp:func:<cite>spi_slave_free</cite>.</li>
+<li>Ethernet — between calls to <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_eth_enable()</span></code> and <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_eth_disable()</span></code>.</li>
+<li>WiFi — between calls to <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_wifi_start()</span></code> and <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_wifi_stop()</span></code>. If modem sleep is enabled, lock will be released for thte periods of time when radio is disabled.</li>
+<li>Bluetooth — between calls to <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_bt_controller_enable()</span></code> and <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_bt_controller_disable()</span></code>.</li>
+</ul>
+<p>The following peripheral drivers are not aware of DFS yet. Applications need to acquire/release locks when necessary:</p>
+<ul class="simple">
+<li>I2C</li>
+<li>I2S</li>
+<li>MCPWM</li>
+<li>PCNT</li>
+<li>Sigma-delta</li>
+<li>Timer group</li>
+</ul>
+</div>
+<div class="section" id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cairin Michie.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.8',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

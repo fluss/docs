@@ -1,0 +1,269 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>FreeRTOS Hooks &mdash; Fluss API 1.0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Fluss API 1.0.8 documentation" href="../../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fluss API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">FreeRTOS Hooks</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#vanilla-freertos-hooks">Vanilla FreeRTOS Hooks</a></li>
+<li><a class="reference internal" href="#esp-idf-idle-and-tick-hooks">ESP-IDF Idle and Tick Hooks</a></li>
+<li><a class="reference internal" href="#api-reference">API Reference</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fluss API</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>FreeRTOS Hooks</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api-reference/system/hooks.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="freertos-hooks">
+<span id="hooks-api-reference"></span><h1>FreeRTOS Hooks<a class="headerlink" href="#freertos-hooks" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>FreeRTOS consists of Idle Hooks and Tick Hooks which allow for application
+specific funtiionality to be added to the Idle Task and Tick Interrupt. The
+ESP32 is dual core in nature, hence the ESP-IDF provides its own Idle and Tick
+Hooks that are dual core compatible in addition to the hooks provided by Vanilla
+FreeRTOS.</p>
+</div>
+<div class="section" id="vanilla-freertos-hooks">
+<h2>Vanilla FreeRTOS Hooks<a class="headerlink" href="#vanilla-freertos-hooks" title="Permalink to this headline">¶</a></h2>
+<p>Idle and Tick Hooks in vanilla FreeRTOS are implemented by defining
+implementations for the functions <code class="docutils literal"><span class="pre">vApplicationIdleHook</span></code> and
+<code class="docutils literal"><span class="pre">vApplicationTickHook</span></code> respectively somewhere in the application. Vanilla
+FreeRTOS will run the user defined Idle Hook every iteration of the Idle Task,
+whereas the user defined Tick Hook will run once per tick interrupt (given that
+there are no pended ticks).</p>
+<p>Due to vanilla FreeRTOS being designed for single core, <code class="docutils literal"><span class="pre">vApplicationIdleHook</span></code>
+and <code class="docutils literal"><span class="pre">vApplicationTickHook</span></code> will be run in both cores on the ESP32. In
+other words, the same Idle Hook and Tick Hook are used for both cores.</p>
+<p>To enable the vanilla FreeRTOS hooks in ESP-IDF, <span class="xref std std-ref">CONFIG_FREERTOS_LEGACY_HOOKS</span>
+must be enabled in <code class="docutils literal"><span class="pre">make</span> <span class="pre">menuconfig</span></code>. <span class="xref std std-ref">CONFIG_FREERTOS_LEGACY_IDLE_HOOK</span>
+and <span class="xref std std-ref">CONFIG_FREERTOS_LEGACY_TICK_HOOK</span> should also be enabled.</p>
+</div>
+<div class="section" id="esp-idf-idle-and-tick-hooks">
+<h2>ESP-IDF Idle and Tick Hooks<a class="headerlink" href="#esp-idf-idle-and-tick-hooks" title="Permalink to this headline">¶</a></h2>
+<p>Due to the dual core nature of the ESP32, it may be necessary for some
+applications to have seperate Idle Hooks for each core. Furthermore, it may
+be necessary for Idle and Tick Hooks to have execute multiple functionalities
+that are configurable at run time. Therefore the ESP-IDF provides it’s own Idle
+and Tick Hooks in addition to the hooks provided by Vanilla FreeRTOS.</p>
+<p>The ESP-IDF Hooks do not operate in the same way as Vanilla FreeRTOS Hooks
+where users provide a definition for each of the hooks. Instead, the ESP-IDF
+Hooks are predefined to call a list of user registered callbacks specific to
+each core. Users can register and deregister callbacks which are run on the
+Idle or Tick Hook of a specific core.</p>
+</div>
+<div class="section" id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cairin Michie.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.8',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

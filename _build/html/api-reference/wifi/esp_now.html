@@ -1,0 +1,326 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ESP-NOW &mdash; Fluss API 1.0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Fluss API 1.0.8 documentation" href="../../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fluss API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">ESP-NOW</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#frame-format">Frame Format</a></li>
+<li><a class="reference internal" href="#security">Security</a></li>
+<li><a class="reference internal" href="#initialization-and-de-initialization">Initialization and De-initialization</a></li>
+<li><a class="reference internal" href="#add-paired-device">Add Paired Device</a></li>
+<li><a class="reference internal" href="#send-esp-now-data">Send ESP-NOW Data</a></li>
+<li><a class="reference internal" href="#receiving-esp-now-data">Receiving ESP-NOW Data</a></li>
+<li><a class="reference internal" href="#api-reference">API Reference</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fluss API</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>ESP-NOW</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api-reference/wifi/esp_now.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="esp-now">
+<h1>ESP-NOW<a class="headerlink" href="#esp-now" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>ESP-NOW is a kind of connectionless WiFi communication protocol which is defined by Espressif. In ESP-NOW, application data is
+encapsulated in vendor-specific action frame and then transmitted from one WiFi device to another without connection.
+CTR with CBC-MAC Protocol(CCMP) is used to protect the action frame for security. ESP-NOW is widely used in smart light, remote
+controlling, sensor, etc.</p>
+</div>
+<div class="section" id="frame-format">
+<h2>Frame Format<a class="headerlink" href="#frame-format" title="Permalink to this headline">¶</a></h2>
+<p>ESP-NOW uses vendor-specific action frame to transmit ESP-NOW data. The format of vendor-specific action frame is as follows:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>----------------------------------------------------------------------------------------
+| MAC Header | Category Code | Organization Identifier | Vendor Specific Content | FCS |
+----------------------------------------------------------------------------------------
+                   1 byte              3 bytes                  7~255 bytes
+</pre></div>
+</div>
+<ul class="simple">
+<li>Category Code: The Category field is set to the value(127) indicating the vendor-specific category.</li>
+<li><dl class="first docutils">
+<dt>Organization Identifier: The Organization Identifier contains a unique identifier(0x18fe34) which is the first three bytes</dt>
+<dd>of MAC address applied by Espressif.</dd>
+</dl>
+</li>
+<li>Vendor Specific Content: The Vendor Specific Content contains vendor-specific field as follows:</li>
+</ul>
+<div class="highlight-none"><div class="highlight"><pre><span></span>-------------------------------------------------------------------------------
+| Element ID | Length | Organization Identifier | Type | Version |    Body    |
+-------------------------------------------------------------------------------
+    1 byte     1 byte            3 bytes         1 byte   1 byte   0~250 bytes
+</pre></div>
+</div>
+<ul class="simple">
+<li>Element ID: The Element ID field is set to the value(221) indicating the vendor-specific element.</li>
+<li>Length: The length is the total length of Organization Identifier, Type, Version and Body.</li>
+<li><dl class="first docutils">
+<dt>Organization Identifier: The Organization Identifier contains a unique identifier(0x18fe34) which is the first three bytes</dt>
+<dd>of MAC address applied by Espressif.</dd>
+</dl>
+</li>
+<li>Type: The Type field is set to the value(4) indicating ESP-NOW.</li>
+<li>Version: The Version field is set to the version of ESP-NOW.</li>
+<li>Body: The Body contains the ESP-NOW data.</li>
+</ul>
+<p>As ESP-NOW is connectionless, the MAC header is a little different from that of standard frames. The FromDS and ToDS bits of
+FrameControl field are both 0. The first address field is set to the destination address. The second address field is set to
+the source address. The third address field is set to broadcast address(0xff:0xff:0xff:0xff:0xff:0xff).</p>
+</div>
+<div class="section" id="security">
+<h2>Security<a class="headerlink" href="#security" title="Permalink to this headline">¶</a></h2>
+<p>ESP-NOW use CCMP method which can be referenced in IEEE Std. 802.11-2012 to protect the vendor-specific action frame. The WiFi
+device maintains a Primary Master Key(PMK) and several Local Master Keys(LMK). The lengths of them are 16 bytes. PMK is used
+to encrypt LMK with AES-128 algorithm. Call <code class="docutils literal"><span class="pre">esp_now_set_pmk()</span></code> to set PMK. If PMK is not set, a default PMK will be used.
+If LMK of the paired device is set, it will be used to encrypt the vendor-specific action frame with CCMP method. The maximum
+number of different LMKs is six. Do not support encrypting multicast vendor-specific action frame.</p>
+</div>
+<div class="section" id="initialization-and-de-initialization">
+<h2>Initialization and De-initialization<a class="headerlink" href="#initialization-and-de-initialization" title="Permalink to this headline">¶</a></h2>
+<p>Call <code class="docutils literal"><span class="pre">esp_now_init()</span></code> to initialize ESP-NOW and <code class="docutils literal"><span class="pre">esp_now_deinit()</span></code> to de-initialize ESP-NOW. ESP-NOW data must be transmitted
+after WiFi is started, so it is recommended to start WiFi before initializing ESP-NOW and stop WiFi after de-initializing ESP-NOW.
+When <code class="docutils literal"><span class="pre">esp_now_deinit()</span></code> is called, all of the information of paired devices will be deleted.</p>
+</div>
+<div class="section" id="add-paired-device">
+<h2>Add Paired Device<a class="headerlink" href="#add-paired-device" title="Permalink to this headline">¶</a></h2>
+<p>Before sending data to other device, call <code class="docutils literal"><span class="pre">esp_now_add_peer()</span></code> to add it to the paired device list first. The maximum number of
+paired devices is twenty. If security is enabled, the LMK must be set. ESP-NOW data can be sent from station or softap interface.
+Make sure that the interface is enabled before sending ESP-NOW data. A device with broadcast MAC address must be added before
+sending broadcast data. The range of the channel of paired device is from 0 to 14. If the channel is set to 0, data will be sent
+on the current channel. Otherwise, the channel must be set as the channel that the local device is on.</p>
+</div>
+<div class="section" id="send-esp-now-data">
+<h2>Send ESP-NOW Data<a class="headerlink" href="#send-esp-now-data" title="Permalink to this headline">¶</a></h2>
+<p>Call <code class="docutils literal"><span class="pre">esp_now_send()</span></code> to send ESP-NOW data and <code class="docutils literal"><span class="pre">esp_now_register_send_cb</span></code> to register sending callback function. It will return
+<cite>ESP_NOW_SEND_SUCCESS</cite> in sending callback function if the data is received successfully on MAC layer. Otherwise, it will return
+<cite>ESP_NOW_SEND_FAIL</cite>. There are several reasons failing to send ESP-NOW data, for example, the destination device doesn’t exist, the
+channels of the devices are not the same, the action frame is lost when transmiting on the air, etc. It is not guaranteed that
+application layer can receive the data. If necessary, send back ack data when receiving ESP-NOW data. If receiving ack data timeout
+happens, retransmit the ESP-NOW data. A sequence number can also be assigned to ESP-NOW data to drop the duplicated data.</p>
+<p>If there is a lot of ESP-NOW data to send, call <code class="docutils literal"><span class="pre">esp_now_send()</span></code> to send less than or equal to 250 bytes of data once a time.
+Note that too short interval between sending two ESP-NOW datas may lead to disorder of sending callback function. So, it is
+recommended that sending the next ESP-NOW data after the sending callback function of previous sending has returned. The sending
+callback function runs from a high-priority WiFi task. So, do not do lengthy operations in the callback function. Instead, post
+necessary data to a queue and handle it from a lower priority task.</p>
+</div>
+<div class="section" id="receiving-esp-now-data">
+<h2>Receiving ESP-NOW Data<a class="headerlink" href="#receiving-esp-now-data" title="Permalink to this headline">¶</a></h2>
+<p>Call <code class="docutils literal"><span class="pre">esp_now_register_recv_cb</span></code> to register receiving callback function. When receiving ESP-NOW data, receiving callback function
+is called. The receiving callback function also runs from WiFi task. So, do not do lengthy operations in the callback function.
+Instead, post necessary data to a queue and handle it from a lower priority task.</p>
+</div>
+<div class="section" id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cairin Michie.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.8',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,376 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>SPI Master driver &mdash; Fluss API 1.0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Fluss API 1.0.8 documentation" href="../../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fluss API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">SPI Master driver</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a><ul>
+<li><a class="reference internal" href="#the-spi-master-driver">The spi_master driver</a></li>
+<li><a class="reference internal" href="#terminology">Terminology</a></li>
+<li><a class="reference internal" href="#spi-transactions">SPI transactions</a></li>
+<li><a class="reference internal" href="#using-the-spi-master-driver">Using the spi_master driver</a></li>
+<li><a class="reference internal" href="#command-and-address-phases">Command and address phases</a></li>
+<li><a class="reference internal" href="#write-and-read-phases">Write and read phases</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#application-example">Application Example</a></li>
+<li><a class="reference internal" href="#api-reference-spi-common">API Reference - SPI Common</a></li>
+<li><a class="reference internal" href="#api-reference-spi-master">API Reference - SPI Master</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fluss API</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>SPI Master driver</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api-reference/peripherals/spi_master.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="spi-master-driver">
+<h1>SPI Master driver<a class="headerlink" href="#spi-master-driver" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The ESP32 has four SPI peripheral devices, called SPI0, SPI1, HSPI and VSPI. SPI0 is entirely dedicated to
+the flash cache the ESP32 uses to map the SPI flash device it is connected to into memory. SPI1 is
+connected to the same hardware lines as SPI0 and is used to write to the flash chip. HSPI and VSPI
+are free to use. SPI1, HSPI and VSPI all have three chip select lines, allowing them to drive up to
+three SPI devices each as a master.</p>
+<div class="section" id="the-spi-master-driver">
+<h3>The spi_master driver<a class="headerlink" href="#the-spi-master-driver" title="Permalink to this headline">¶</a></h3>
+<p>The spi_master driver allows easy communicating with SPI slave devices, even in a multithreaded environment.
+It fully transparently handles DMA transfers to read and write data and automatically takes care of
+multiplexing between different SPI slaves on the same master</p>
+</div>
+<div class="section" id="terminology">
+<h3>Terminology<a class="headerlink" href="#terminology" title="Permalink to this headline">¶</a></h3>
+<p>The spi_master driver uses the following terms:</p>
+<ul class="simple">
+<li>Host: The SPI peripheral inside the ESP32 initiating the SPI transmissions. One of SPI, HSPI or VSPI. (For
+now, only HSPI or VSPI are actually supported in the driver; it will support all 3 peripherals
+somewhere in the future.)</li>
+<li>Bus: The SPI bus, common to all SPI devices connected to one host. In general the bus consists of the
+miso, mosi, sclk and optionally quadwp and quadhd signals. The SPI slaves are connected to these
+signals in parallel.<ul>
+<li>miso - Also known as q, this is the input of the serial stream into the ESP32</li>
+<li>mosi - Also known as d, this is the output of the serial stream from the ESP32</li>
+<li>sclk - Clock signal. Each data bit is clocked out or in on the positive or negative edge of this signal</li>
+<li>quadwp - Write Protect signal. Only used for 4-bit (qio/qout) transactions.</li>
+<li>quadhd - Hold signal. Only used for 4-bit (qio/qout) transactions.</li>
+</ul>
+</li>
+<li>Device: A SPI slave. Each SPI slave has its own chip select (CS) line, which is made active when
+a transmission to/from the SPI slave occurs.</li>
+<li>Transaction: One instance of CS going active, data transfer from and/or to a device happening, and
+CS going inactive again. Transactions are atomic, as in they will never be interrupted by another
+transaction.</li>
+</ul>
+</div>
+<div class="section" id="spi-transactions">
+<h3>SPI transactions<a class="headerlink" href="#spi-transactions" title="Permalink to this headline">¶</a></h3>
+<p>A transaction on the SPI bus consists of five phases, any of which may be skipped:</p>
+<ul class="simple">
+<li>The command phase. In this phase, a command (0-16 bit) is clocked out.</li>
+<li>The address phase. In this phase, an address (0-64 bit) is clocked out.</li>
+<li>The write phase. The master sends data to the slave.</li>
+<li>The dummy phase. The phase is configurable, used to meet the timing requirements.</li>
+<li>The read phase. The slave sends data to the master.</li>
+</ul>
+<p>In full duplex, the read and write phases are combined, causing the SPI host to read and
+write data simultaneously. The total transaction length is decided by
+<code class="docutils literal"><span class="pre">command_bits</span> <span class="pre">+</span> <span class="pre">address_bits</span> <span class="pre">+</span> <span class="pre">trans_conf.length</span></code>, while the <code class="docutils literal"><span class="pre">trans_conf.rx_length</span></code>
+only determins length of data received into the buffer.</p>
+<p>In half duplex, the length of write phase and read phase are decided by <code class="docutils literal"><span class="pre">trans_conf.length</span></code> and
+<code class="docutils literal"><span class="pre">trans_conf.rx_length</span></code> respectively. ** Note that a half duplex transaction with both a read and
+write phase is not supported when using DMA. ** If such transaction is needed, you have to use one
+of the alternative solutions:</p>
+<blockquote>
+<div><ol class="arabic">
+<li><p class="first">use full-duplex mode instead.</p>
+</li>
+<li><p class="first">disable the DMA by set the last parameter to 0 in bus initialization function just as belows:
+<code class="docutils literal"><span class="pre">ret=spi_bus_initialize(VSPI_HOST,</span> <span class="pre">&amp;buscfg,</span> <span class="pre">0);</span></code></p>
+<p>this may prohibit you from transmitting and receiving data longer than 32 bytes.</p>
+</li>
+<li><p class="first">try to use command and address field to replace the write phase.</p>
+</li>
+</ol>
+</div></blockquote>
+<p>The command and address phase are optional in that not every SPI device will need to be sent a command
+and/or address. This is reflected in the device configuration: when the <code class="docutils literal"><span class="pre">command_bits</span></code> or <code class="docutils literal"><span class="pre">address_bits</span></code>
+fields are set to zero, no command or address phase is done.</p>
+<p>Something similar is true for the read and write phase: not every transaction needs both data to be written
+as well as data to be read. When <code class="docutils literal"><span class="pre">rx_buffer</span></code> is NULL (and SPI_USE_RXDATA) is not set) the read phase
+is skipped. When <code class="docutils literal"><span class="pre">tx_buffer</span></code> is NULL (and SPI_USE_TXDATA) is not set) the write phase is skipped.</p>
+</div>
+<div class="section" id="using-the-spi-master-driver">
+<h3>Using the spi_master driver<a class="headerlink" href="#using-the-spi-master-driver" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Initialize a SPI bus by calling <code class="docutils literal"><span class="pre">spi_bus_initialize</span></code>. Make sure to set the correct IO pins in
+the <code class="docutils literal"><span class="pre">bus_config</span></code> struct. Take care to set signals that are not needed to -1.</li>
+<li>Tell the driver about a SPI slave device connected to the bus by calling spi_bus_add_device.
+Make sure to configure any timing requirements the device has in the <code class="docutils literal"><span class="pre">dev_config</span></code> structure.
+You should now have a handle for the device, to be used when sending it a transaction.</li>
+<li>To interact with the device, fill one or more spi_transaction_t structure with any transaction
+parameters you need. Either queue all transactions by calling <code class="docutils literal"><span class="pre">spi_device_queue_trans</span></code>, later
+quering the result using <code class="docutils literal"><span class="pre">spi_device_get_trans_result</span></code>, or handle all requests synchroneously
+by feeding them into <code class="docutils literal"><span class="pre">spi_device_transmit</span></code>.</li>
+<li>Optional: to unload the driver for a device, call <code class="docutils literal"><span class="pre">spi_bus_remove_device</span></code> with the device
+handle as an argument</li>
+<li>Optional: to remove the driver for a bus, make sure no more drivers are attached and call
+<code class="docutils literal"><span class="pre">spi_bus_free</span></code>.</li>
+</ul>
+</div>
+<div class="section" id="command-and-address-phases">
+<h3>Command and address phases<a class="headerlink" href="#command-and-address-phases" title="Permalink to this headline">¶</a></h3>
+<p>During the command and address phases, <code class="docutils literal"><span class="pre">cmd</span></code> and <code class="docutils literal"><span class="pre">addr</span></code> field in the
+<code class="docutils literal"><span class="pre">spi_transaction_t</span></code> struct are sent to the bus, while nothing is read at the
+same time. The default length of command and address phase are set in the
+<code class="docutils literal"><span class="pre">spi_device_interface_config_t</span></code> and by <code class="docutils literal"><span class="pre">spi_bus_add_device</span></code>. When the the
+flag <code class="docutils literal"><span class="pre">SPI_TRANS_VARIABLE_CMD</span></code> and <code class="docutils literal"><span class="pre">SPI_TRANS_VARIABLE_ADDR</span></code> are not set in
+the <code class="docutils literal"><span class="pre">spi_transaction_t</span></code>,the driver automatically set the length of these
+phases to the default value as set when the device is initialized respectively.</p>
+<p>If the length of command and address phases needs to be variable, declare a
+<code class="docutils literal"><span class="pre">spi_transaction_ext_t</span></code> descriptor, set the flag <code class="docutils literal"><span class="pre">SPI_TRANS_VARIABLE_CMD</span></code>
+or/and <code class="docutils literal"><span class="pre">SPI_TRANS_VARIABLE_ADDR</span></code> in the <code class="docutils literal"><span class="pre">flags</span></code> of <code class="docutils literal"><span class="pre">base</span></code> member and
+configure the rest part of <code class="docutils literal"><span class="pre">base</span></code> as usual. Then the length of each phases
+will be <code class="docutils literal"><span class="pre">command_bits</span></code> and <code class="docutils literal"><span class="pre">address_bits</span></code> set in the <code class="docutils literal"><span class="pre">spi_transaction_ext_t</span></code>.</p>
+</div>
+<div class="section" id="write-and-read-phases">
+<h3>Write and read phases<a class="headerlink" href="#write-and-read-phases" title="Permalink to this headline">¶</a></h3>
+<p>Normally, data to be transferred to or from a device will be read from or written to a chunk of memory
+indicated by the <code class="docutils literal"><span class="pre">rx_buffer</span></code> and <code class="docutils literal"><span class="pre">tx_buffer</span></code> members of the transaction structure.
+When DMA is enabled for transfers, these buffers are highly recommended to meet the requirements as belows:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>allocated in DMA-capable memory using <code class="docutils literal"><span class="pre">pvPortMallocCaps(size,</span> <span class="pre">MALLOC_CAP_DMA)</span></code>;</li>
+<li>32-bit aligned (start from the boundary and have length of multiples of 4 bytes).</li>
+</ol>
+</div></blockquote>
+<p>If these requirements are not satisfied, efficiency of the transaction will suffer due to the allocation and
+memcpy of temporary buffers.</p>
+<p>Sometimes, the amount of data is very small making it less than optimal allocating a separate buffer
+for it. If the data to be transferred is 32 bits or less, it can be stored in the transaction struct
+itself. For transmitted data, use the <code class="docutils literal"><span class="pre">tx_data</span></code> member for this and set the <code class="docutils literal"><span class="pre">SPI_USE_TXDATA</span></code> flag
+on the transmission. For received data, use <code class="docutils literal"><span class="pre">rx_data</span></code> and set <code class="docutils literal"><span class="pre">SPI_USE_RXDATA</span></code>. In both cases, do
+not touch the <code class="docutils literal"><span class="pre">tx_buffer</span></code> or <code class="docutils literal"><span class="pre">rx_buffer</span></code> members, because they use the same memory locations
+as <code class="docutils literal"><span class="pre">tx_data</span></code> and <code class="docutils literal"><span class="pre">rx_data</span></code>.</p>
+</div>
+</div>
+<div class="section" id="application-example">
+<h2>Application Example<a class="headerlink" href="#application-example" title="Permalink to this headline">¶</a></h2>
+<p>Display graphics on the 320x240 LCD of WROVER-Kits: <a href="#id1"><span class="problematic" id="id2">:example:`peripherals/spi_master`</span></a>.</p>
+</div>
+<div class="section" id="api-reference-spi-common">
+<h2>API Reference - SPI Common<a class="headerlink" href="#api-reference-spi-common" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="api-reference-spi-master">
+<h2>API Reference - SPI Master<a class="headerlink" href="#api-reference-spi-master" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cairin Michie.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.8',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

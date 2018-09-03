@@ -1,0 +1,322 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Interrupt allocation &mdash; Fluss API 1.0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Fluss API 1.0.8 documentation" href="../../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fluss API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Interrupt allocation</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#multicore-issues">Multicore issues</a><ul>
+<li><a class="reference internal" href="#internal-peripheral-interrupts">Internal peripheral interrupts</a></li>
+<li><a class="reference internal" href="#external-peripheral-interrupts">External Peripheral Interrupts</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#iram-safe-interrupt-handlers">IRAM-Safe Interrupt Handlers</a></li>
+<li><a class="reference internal" href="#multiple-handlers-sharing-a-source">Multiple Handlers Sharing A Source</a></li>
+<li><a class="reference internal" href="#api-reference">API Reference</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fluss API</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>Interrupt allocation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api-reference/system/intr_alloc.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="interrupt-allocation">
+<h1>Interrupt allocation<a class="headerlink" href="#interrupt-allocation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The ESP32 has two cores, with 32 interrupts each. Each interrupt has a certain priority level, most (but not all) interrupts are connected
+to the interrupt mux. Because there are more interrupt sources than interrupts, sometimes it makes sense to share an interrupt in
+multiple drivers. The esp_intr_alloc abstraction exists to hide all these implementation details.</p>
+<p>A driver can allocate an interrupt for a certain peripheral by calling esp_intr_alloc (or esp_intr_alloc_sintrstatus). It can use
+the flags passed to this function to set the type of interrupt allocated, specifying a specific level or trigger method. The
+interrupt allocation code will then find an applicable interrupt, use the interrupt mux to hook it up to the peripheral, and
+install the given interrupt handler and ISR to it.</p>
+<p>This code has two different types of interrupts it handles differently: Shared interrupts and non-shared interrupts. The simplest
+of the two are non-shared interrupts: a separate interrupt is allocated per esp_intr_alloc call and this interrupt is solely used for
+the peripheral attached to it, with only one ISR that will get called. Shared interrupts can have multiple peripherals triggering
+it, with multiple ISRs being called when one of the peripherals attached signals an interrupt. Thus, ISRs that are intended for shared
+interrupts should check the interrupt status of the peripheral they service in order to see if any action is required.</p>
+<p>Non-shared interrupts can be either level- or edge-triggered. Shared interrupts can
+only be level interrupts (because of the chance of missed interrupts when edge interrupts are
+used.)
+(The logic behind this: DevA and DevB share an int. DevB signals an int. Int line goes high. ISR handler
+calls code for DevA -&gt; does nothing. ISR handler calls code for DevB, but while doing that,
+DevA signals an int. ISR DevB is done, clears int for DevB, exits interrupt code. Now an
+interrupt for DevA is still pending, but because the int line never went low (DevA kept it high
+even when the int for DevB was cleared) the interrupt is never serviced.)</p>
+</div>
+<div class="section" id="multicore-issues">
+<h2>Multicore issues<a class="headerlink" href="#multicore-issues" title="Permalink to this headline">¶</a></h2>
+<p>Peripherals that can generate interrupts can be divided in two types:</p>
+<blockquote>
+<div><ul class="simple">
+<li>External peripherals, within the ESP32 but outside the Xtensa cores themselves. Most ESP32 peripherals are of this type.</li>
+<li>Internal peripherals, part of the Xtensa CPU cores themselves.</li>
+</ul>
+</div></blockquote>
+<p>Interrupt handling differs slightly between these two types of peripherals.</p>
+<div class="section" id="internal-peripheral-interrupts">
+<h3>Internal peripheral interrupts<a class="headerlink" href="#internal-peripheral-interrupts" title="Permalink to this headline">¶</a></h3>
+<p>Each Xtensa CPU core has its own set of six internal peripherals:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Three timer comparators</li>
+<li>A performance monitor</li>
+<li>Two software interrupts.</li>
+</ul>
+</div></blockquote>
+<p>Internal interrupt sources are defined in esp_intr_alloc.h as <code class="docutils literal"><span class="pre">ETS_INTERNAL_*_INTR_SOURCE</span></code>.</p>
+<p>These peripherals can only be configured from the core they are associated with. When generating an interrupt,
+the interrupt they generate is hard-wired to their associated core; it’s not possible to have e.g. an internal
+timer comparator of one core generate an interrupt on another core. That is why these sources can only be managed
+using a task running on that specific core. Internal interrupt sources are still allocatable using esp_intr_alloc
+as normal, but they cannot be shared and will always have a fixed interrupt level (namely, the one associated in
+hardware with the peripheral).</p>
+</div>
+<div class="section" id="external-peripheral-interrupts">
+<h3>External Peripheral Interrupts<a class="headerlink" href="#external-peripheral-interrupts" title="Permalink to this headline">¶</a></h3>
+<p>The remaining interrupt sources are from external peripherals. These are defined in soc/soc.h as <code class="docutils literal"><span class="pre">ETS_*_INTR_SOURCE</span></code>.</p>
+<p>Non-internal interrupt slots in both CPU cores are wired to an interrupt multiplexer, which can be used to
+route any external interrupt source to any of these interrupt slots.</p>
+<ul class="simple">
+<li>Allocating an external interrupt will always allocate it on the core that does the allocation.</li>
+<li>Freeing an external interrupt must always happen on the same core it was allocated on.</li>
+<li>Disabling and enabling external interrupts from another core is allowed.</li>
+<li>Multiple external interrupt sources can share an interrupt slot by passing <code class="docutils literal"><span class="pre">ESP_INTR_FLAG_SHARED</span></code> as a flag to esp_intr_alloc().</li>
+</ul>
+<p>Care should be taken when calling esp_intr_alloc() from a task which is not pinned to a core. During task switching, these tasks can migrate between cores. Therefore it is impossible to tell which CPU the interrupt is allocated on, which makes it difficult to free the interrupt handle and may also cause debugging difficulties. It is advised to use xTaskCreatePinnedToCore() with a specific CoreID argument to create tasks that will allocate interrupts. In the case of internal interrupt sources, this is required.</p>
+</div>
+</div>
+<div class="section" id="iram-safe-interrupt-handlers">
+<h2>IRAM-Safe Interrupt Handlers<a class="headerlink" href="#iram-safe-interrupt-handlers" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">ESP_INTR_FLAG_IRAM</span></code> flag registers an interrupt handler that always runs from IRAM (and reads all its data from DRAM), and therefore does not need to be disabled during flash erase and write operations.</p>
+<p>This is useful for interrupts which need a guaranteed minimum execution latency, as flash write and erase operations can be slow (erases can take tens or hundreds of milliseconds to complete).</p>
+<p>It can also be useful to keep an interrupt handler in IRAM if it is called very frequently, to avoid flash cache misses.</p>
+<p>Refer to the <span class="xref std std-ref">SPI flash API documentation</span> for more details.</p>
+</div>
+<div class="section" id="multiple-handlers-sharing-a-source">
+<h2>Multiple Handlers Sharing A Source<a class="headerlink" href="#multiple-handlers-sharing-a-source" title="Permalink to this headline">¶</a></h2>
+<p>Several handlers can be assigned to a same source, given that all handlers are allocated using the <code class="docutils literal"><span class="pre">ESP_INTR_FLAG_SHARED</span></code> flag.
+They’ll be all allocated to the interrupt, which the source is attached to, and called sequentially when the source is active.
+The handlers can be disabled and freed individually. The source is attached to the interrupt (enabled), if one or more handlers are enabled, otherwise detached.
+A handler will never be called when disabled, while <strong>its source may still be triggered</strong> if any one of its handler enabled.</p>
+<p>Sources attached to non-shared interrupt do not support this feature.</p>
+<p>Though the framework support this feature, you have to use it <em>very carefully</em>. There usually exist 2 ways to stop a interrupt from being triggered: <em>disable the sourse</em> or <em>mask peripheral interrupt status</em>.
+IDF only handles the enabling and disabling of the source itself, leaving status and mask bits to be handled by users. <strong>Status bits should always be masked before the handler responsible for it is disabled,
+or the status should be handled in other enabled interrupt properly</strong>. You may leave some status bits unhandled if you just disable one of all the handlers without mask the status bits, which causes the interrupt being triggered infinitely,
+and finally a system crash.</p>
+</div>
+<div class="section" id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cairin Michie.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.8',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

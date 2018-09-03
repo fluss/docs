@@ -1,0 +1,300 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Pulse Counter &mdash; Fluss API 1.0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Fluss API 1.0.8 documentation" href="../../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fluss API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Pulse Counter</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#functionality-overview">Functionality Overview</a></li>
+<li><a class="reference internal" href="#configuration">Configuration</a></li>
+<li><a class="reference internal" href="#operating-the-counter">Operating the Counter</a></li>
+<li><a class="reference internal" href="#filtering-pulses">Filtering Pulses</a></li>
+<li><a class="reference internal" href="#using-interrupts">Using Interrupts</a></li>
+<li><a class="reference internal" href="#application-example">Application Example</a></li>
+<li><a class="reference internal" href="#api-reference">API Reference</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fluss API</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>Pulse Counter</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api-reference/peripherals/pcnt.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pulse-counter">
+<h1>Pulse Counter<a class="headerlink" href="#pulse-counter" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>The PCNT (Pulse Counter) module is designed to count the number of rising and/or falling edges of an input signal. Each pulse counter unit has a 16-bit signed counter register and two channels that can be configured to either increment or decrement the counter. Each channel has a signal input that accepts signal edges to be detected, as well as a control input that can be used to enable or disable the signal input. The inputs have optional filters that can be used to discard unwanted glitches in the signal.</p>
+</div>
+<div class="section" id="functionality-overview">
+<h2>Functionality Overview<a class="headerlink" href="#functionality-overview" title="Permalink to this headline">¶</a></h2>
+<p>Description of functionality of this API has been broken down into four sections:</p>
+<ul class="simple">
+<li><a class="reference internal" href="#pcnt-api-configuration"><span class="std std-ref">Configuration</span></a> - describes counter’s configuration parameters and how to setup the counter.</li>
+<li><a class="reference internal" href="#pcnt-api-operating-the-counter"><span class="std std-ref">Operating the Counter</span></a> - provides information on control functions to pause, measure and clear the counter.</li>
+<li><a class="reference internal" href="#pcnt-api-filtering-pulses"><span class="std std-ref">Filtering Pulses</span></a> - describes options to filtering pulses and the counter control signals.</li>
+<li><a class="reference internal" href="#pcnt-api-using-interrupts"><span class="std std-ref">Using Interrupts</span></a> - presents how to trigger interrupts on specific states of the counter.</li>
+</ul>
+</div>
+<div class="section" id="configuration">
+<span id="pcnt-api-configuration"></span><h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>The PCNT module has eight independent counting “units” numbered from 0 to 7. In the API they are referred to using <code class="xref cpp cpp-type docutils literal"><span class="pre">pcnt_unit_t</span></code>. Each unit has two independent channels numbered as 0 and 1 and specified with <code class="xref cpp cpp-type docutils literal"><span class="pre">pcnt_channel_t</span></code>.</p>
+<p>The configuration is provided separately per unit’s channel using <code class="xref cpp cpp-type docutils literal"><span class="pre">pcnt_config_t</span></code> and covers:</p>
+<blockquote>
+<div><ul class="simple">
+<li>The unit and the channel number this configuration refers to.</li>
+<li>GPIO numbers of the pulse input and the pulse gate input.</li>
+<li>Two pairs of parameters: <code class="xref cpp cpp-type docutils literal"><span class="pre">pcnt_ctrl_mode_t</span></code> and <code class="xref cpp cpp-type docutils literal"><span class="pre">pcnt_count_mode_t</span></code> to define how the counter reacts depending on the the status of control signal and how counting is done positive / negative edge of the pulses.</li>
+<li>Two limit values (minimum / maximum) that are used to establish watchpoints and trigger interrupts when the pulse count is meeting particular limit.</li>
+</ul>
+</div></blockquote>
+<p>Setting up of particular channel is then done by calling a function <code class="xref cpp cpp-func docutils literal"><span class="pre">pcnt_unit_config()</span></code> with above <code class="xref cpp cpp-type docutils literal"><span class="pre">pcnt_config_t</span></code> as the input parameter.</p>
+<p>To disable the pulse or the control input pin in configuration, provide <code class="xref cpp cpp-type docutils literal"><span class="pre">PCNT_PIN_NOT_USED</span></code> instead of the GPIO number.</p>
+</div>
+<div class="section" id="operating-the-counter">
+<span id="pcnt-api-operating-the-counter"></span><h2>Operating the Counter<a class="headerlink" href="#operating-the-counter" title="Permalink to this headline">¶</a></h2>
+<p>After doing setup with <code class="xref cpp cpp-func docutils literal"><span class="pre">pcnt_unit_config()</span></code>, the counter immediately starts to operate. The accumulated pulse count can be checked by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">pcnt_get_counter_value()</span></code>.</p>
+<p>There are couple of functions that allow to control the counter’s operation: <code class="xref cpp cpp-func docutils literal"><span class="pre">pcnt_counter_pause()</span></code>,  <code class="xref cpp cpp-func docutils literal"><span class="pre">pcnt_counter_resume()</span></code> and <code class="xref cpp cpp-func docutils literal"><span class="pre">pcnt_counter_clear()</span></code></p>
+<p>It is also possible to dynamically change the previously set up counter modes with <code class="xref cpp cpp-func docutils literal"><span class="pre">pcnt_unit_config()</span></code> by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">pcnt_set_mode()</span></code>.</p>
+<p>If desired, the pulse input pin and the control input pin may be changed “on the fly” using <code class="xref cpp cpp-func docutils literal"><span class="pre">pcnt_set_pin()</span></code>. To disable particular input provide as a function parameter <code class="xref cpp cpp-type docutils literal"><span class="pre">PCNT_PIN_NOT_USED</span></code> instead of the GPIO number.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For the counter not to miss any pulses, the pulse duration should be longer than one APB_CLK cycle (12.5 ns). The pulses are sampled on the edges of the APB_CLK clock and may be missed, if fall between the edges. This applies to counter operation with or without a <a class="reference internal" href="#pcnt-api-filtering-pulses"><span class="std std-ref">filer</span></a>.</p>
+</div>
+</div>
+<div class="section" id="filtering-pulses">
+<span id="pcnt-api-filtering-pulses"></span><h2>Filtering Pulses<a class="headerlink" href="#filtering-pulses" title="Permalink to this headline">¶</a></h2>
+<p>The PCNT unit features filters on each of the pulse and control inputs, adding the option to ignore short glitches in the signals.</p>
+<p>The length of ignored pulses is provided in APB_CLK clock cycles by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">pcnt_set_filter_value()</span></code>. The current filter setting may be checked with <code class="xref cpp cpp-func docutils literal"><span class="pre">pcnt_get_filter_value()</span></code>. The APB_CLK clock is running at 80 MHz.</p>
+<p>The filter is put into operation / suspended by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">pcnt_filter_enable()</span></code> / <code class="xref cpp cpp-func docutils literal"><span class="pre">pcnt_filter_disable()</span></code>.</p>
+</div>
+<div class="section" id="using-interrupts">
+<span id="pcnt-api-using-interrupts"></span><h2>Using Interrupts<a class="headerlink" href="#using-interrupts" title="Permalink to this headline">¶</a></h2>
+<p>There are five counter state watch events, defined in <code class="xref cpp cpp-type docutils literal"><span class="pre">pcnt_evt_type_t</span></code>, that are able to trigger an interrupt. The event happens on the pulse counter reaching specific values:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Minimum or maximum count values: <code class="xref cpp cpp-member docutils literal"><span class="pre">counter_l_lim</span></code> or <code class="xref cpp cpp-member docutils literal"><span class="pre">counter_h_lim</span></code> provided in <code class="xref cpp cpp-type docutils literal"><span class="pre">pcnt_config_t</span></code> as discussed in <a class="reference internal" href="#pcnt-api-configuration"><span class="std std-ref">Configuration</span></a></li>
+<li>Threshold 0 or Threshold 1 values set using function <code class="xref cpp cpp-func docutils literal"><span class="pre">pcnt_set_event_value()</span></code>.</li>
+<li>Pulse count = 0</li>
+</ul>
+</div></blockquote>
+<p>To register, enable or disable an interrupt to service the above events, call <code class="xref cpp cpp-func docutils literal"><span class="pre">pcnt_isr_register()</span></code>, <code class="xref cpp cpp-func docutils literal"><span class="pre">pcnt_intr_enable()</span></code>. and <code class="xref cpp cpp-func docutils literal"><span class="pre">pcnt_intr_disable()</span></code>. To enable or disable events on reaching threshold values, you will also need to call functions <code class="xref cpp cpp-func docutils literal"><span class="pre">pcnt_event_enable()</span></code> and <code class="xref cpp cpp-func docutils literal"><span class="pre">pcnt_event_disable()</span></code>.</p>
+<p>In order to check what are the threshold values currently set, use function <code class="xref cpp cpp-func docutils literal"><span class="pre">pcnt_get_event_value()</span></code>.</p>
+</div>
+<div class="section" id="application-example">
+<h2>Application Example<a class="headerlink" href="#application-example" title="Permalink to this headline">¶</a></h2>
+<p>Pulse counter with control signal and event interrupt example: <a href="#id1"><span class="problematic" id="id2">:example:`peripherals/pcnt`</span></a>.</p>
+</div>
+<div class="section" id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cairin Michie.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.8',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

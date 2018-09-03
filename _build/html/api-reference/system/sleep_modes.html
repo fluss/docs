@@ -1,0 +1,329 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Sleep Modes &mdash; Fluss API 1.0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Fluss API 1.0.8 documentation" href="../../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fluss API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Sleep Modes</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#wifi-bt-and-sleep-modes">WiFi/BT and sleep modes</a></li>
+<li><a class="reference internal" href="#wakeup-sources">Wakeup sources</a><ul>
+<li><a class="reference internal" href="#timer">Timer</a></li>
+<li><a class="reference internal" href="#touch-pad">Touch pad</a></li>
+<li><a class="reference internal" href="#external-wakeup-ext0">External wakeup (ext0)</a></li>
+<li><a class="reference internal" href="#external-wakeup-ext1">External wakeup (ext1)</a></li>
+<li><a class="reference internal" href="#ulp-coprocessor-wakeup">ULP coprocessor wakeup</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#power-down-of-rtc-peripherals-and-memories">Power-down of RTC peripherals and memories</a></li>
+<li><a class="reference internal" href="#entering-light-sleep">Entering light sleep</a></li>
+<li><a class="reference internal" href="#entering-deep-sleep">Entering deep sleep</a></li>
+<li><a class="reference internal" href="#checking-sleep-wakeup-cause">Checking sleep wakeup cause</a></li>
+<li><a class="reference internal" href="#application-example">Application Example</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fluss API</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>Sleep Modes</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api-reference/system/sleep_modes.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="sleep-modes">
+<h1>Sleep Modes<a class="headerlink" href="#sleep-modes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>ESP32 is capable of light sleep and deep sleep power saving modes.</p>
+<p>In light sleep mode, digital peripherals, most of the RAM, and CPUs are clock-gated, and supply voltage is reduced. Upon exit from light sleep, peripherals and CPUs resume operation, their internal state is preserved.</p>
+<p>In deep sleep mode, CPUs, most of the RAM, and all the digital peripherals which are clocked from APB_CLK are powered off. The only parts of the chip which can still be powered on are: RTC controller, RTC peripherals (including ULP coprocessor), and RTC memories (slow and fast).</p>
+<p>Wakeup from deep and light sleep modes can be done using several sources. These sources can be combined, in this case the chip will wake up when any one of the sources is triggered. Wakeup sources can be enabled using <code class="docutils literal"><span class="pre">esp_sleep_enable_X_wakeup</span></code> APIs. Next section describes these APIs in detail. Wakeup sources can be configured at any moment before entering light or deep sleep mode.</p>
+<p>Additionally, the application can force specific powerdown modes for the RTC peripherals and RTC memories using <code class="docutils literal"><span class="pre">esp_sleep_pd_config</span></code> API.</p>
+<p>Once wakeup sources are configured, application can enter sleep mode using <code class="docutils literal"><span class="pre">esp_light_sleep_start</span></code> or <code class="docutils literal"><span class="pre">esp_deep_sleep_start</span></code> APIs. At this point the hardware will be configured according to the requested wakeup sources, and RTC controller will either power down or power off the CPUs and digital peripherals.</p>
+</div>
+<div class="section" id="wifi-bt-and-sleep-modes">
+<h2>WiFi/BT and sleep modes<a class="headerlink" href="#wifi-bt-and-sleep-modes" title="Permalink to this headline">¶</a></h2>
+<p>In deep sleep mode, wireless peripherals are powered down. Before entering sleep mode, applications must disable WiFi and BT using appropriate calls ( <code class="docutils literal"><span class="pre">esp_bluedroid_disable</span></code>, <code class="docutils literal"><span class="pre">esp_bt_controller_disable</span></code>, <code class="docutils literal"><span class="pre">esp_wifi_stop</span></code>).</p>
+<p>WiFi can coexist with light sleep mode, allowing the chip to go into light sleep mode when there is no network activity, and waking up the chip from light sleep mode when required. However <strong>APIs described in this section can not be used for that purpose</strong>. <code class="docutils literal"><span class="pre">esp_light_sleep_start</span></code> forces the chip to enter light sleep mode, regardless of whether WiFi is active or not. Automatic entry into light sleep mode, coordinated with WiFi driver, will be supported using a separate set of APIs.</p>
+</div>
+<div class="section" id="wakeup-sources">
+<h2>Wakeup sources<a class="headerlink" href="#wakeup-sources" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="timer">
+<h3>Timer<a class="headerlink" href="#timer" title="Permalink to this headline">¶</a></h3>
+<p>RTC controller has a built in timer which can be used to wake up the chip after a predefined amount of time. Time is specified at microsecond precision, but the actual resolution depends on the clock source selected for RTC SLOW_CLK. See chapter “Reset and Clock” of the ESP32 Technical Reference Manual for details about RTC clock options.</p>
+<p>This wakeup mode doesn’t require RTC peripherals or RTC memories to be powered on during sleep.</p>
+<p>The following function can be used to enable deep sleep wakeup using a timer.</p>
+</div>
+<div class="section" id="touch-pad">
+<h3>Touch pad<a class="headerlink" href="#touch-pad" title="Permalink to this headline">¶</a></h3>
+<p>RTC IO module contains logic to trigger wakeup when a touch sensor interrupt occurs. You need to configure the touch pad interrupt before the chip starts deep sleep.</p>
+<p>Revisions 0 and 1 of the ESP32 only support this wakeup mode when RTC peripherals are not forced to be powered on (i.e. ESP_PD_DOMAIN_RTC_PERIPH should be set to ESP_PD_OPTION_AUTO).</p>
+</div>
+<div class="section" id="external-wakeup-ext0">
+<h3>External wakeup (ext0)<a class="headerlink" href="#external-wakeup-ext0" title="Permalink to this headline">¶</a></h3>
+<p>RTC IO module contains logic to trigger wakeup when one of RTC GPIOs is set to a predefined logic level. RTC IO is part of RTC peripherals power domain, so RTC peripherals will be kept powered on during deep sleep if this wakeup source is requested.</p>
+<p>Because RTC IO module is enabled in this mode, internal pullup or pulldown resistors can also be used. They need to be configured by the application using <code class="docutils literal"><span class="pre">rtc_gpio_pullup_en</span></code> and <code class="docutils literal"><span class="pre">rtc_gpio_pulldown_en</span></code> functions, before calling <code class="docutils literal"><span class="pre">esp_sleep_start</span></code>.</p>
+<p>In revisions 0 and 1 of the ESP32, this wakeup source is incompatible with ULP and touch wakeup sources.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">After wake up from sleep, IO pad used for wakeup will be configured as RTC IO. Before using this pad as digital GPIO, reconfigure it using <code class="docutils literal"><span class="pre">rtc_gpio_deinit(gpio_num)</span></code> function.</p>
+</div>
+</div>
+<div class="section" id="external-wakeup-ext1">
+<h3>External wakeup (ext1)<a class="headerlink" href="#external-wakeup-ext1" title="Permalink to this headline">¶</a></h3>
+<p>RTC controller contains logic to trigger wakeup using multiple RTC GPIOs. One of the two logic functions can be used to trigger wakeup:</p>
+<blockquote>
+<div><ul class="simple">
+<li>wake up if any of the selected pins is high (<code class="docutils literal"><span class="pre">ESP_EXT1_WAKEUP_ANY_HIGH</span></code>)</li>
+<li>wake up if all the selected pins are low (<code class="docutils literal"><span class="pre">ESP_EXT1_WAKEUP_ALL_LOW</span></code>)</li>
+</ul>
+</div></blockquote>
+<p>This wakeup source is implemented by the RTC controller. As such, RTC peripherals and RTC memories can be powered down in this mode. However, if RTC peripherals are powered down, internal pullup and pulldown resistors will be disabled. To use internal pullup or pulldown resistors, request RTC peripherals power domain to be kept on during sleep, and configure pullup/pulldown resistors using <code class="docutils literal"><span class="pre">rtc_gpio_</span></code> functions, before entering sleep:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">esp_sleep_pd_config</span><span class="p">(</span><span class="n">ESP_PD_DOMAIN_RTC_PERIPH</span><span class="p">,</span> <span class="n">ESP_PD_OPTION_ON</span><span class="p">);</span>
+<span class="n">gpio_pullup_dis</span><span class="p">(</span><span class="n">gpio_num</span><span class="p">);</span>
+<span class="n">gpio_pulldown_en</span><span class="p">(</span><span class="n">gpio_num</span><span class="p">);</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">After wake up from sleep, IO pad(s) used for wakeup will be configured as RTC IO. Before using these pads as digital GPIOs, reconfigure them using <code class="docutils literal"><span class="pre">rtc_gpio_deinit(gpio_num)</span></code> function.</p>
+</div>
+<p>The following function can be used to enable this wakeup mode:</p>
+</div>
+<div class="section" id="ulp-coprocessor-wakeup">
+<h3>ULP coprocessor wakeup<a class="headerlink" href="#ulp-coprocessor-wakeup" title="Permalink to this headline">¶</a></h3>
+<p>ULP coprocessor can run while the chip is in sleep mode, and may be used to poll sensors, monitor ADC or touch sensor values, and wake up the chip when a specific event is detected. ULP coprocessor is part of RTC peripherals power domain, and it runs the program stored in RTC slow memeory. RTC slow memory will be powered on during sleep if this wakeup mode is requested. RTC peripherals will be automatically powered on before ULP coprocessor starts running the program; once the program stops running, RTC peripherals are automatically powered down again.</p>
+<p>Revisions 0 and 1 of the ESP32 only support this wakeup mode when RTC peripherals are not forced to be powered on (i.e. ESP_PD_DOMAIN_RTC_PERIPH should be set to ESP_PD_OPTION_AUTO).</p>
+<p>The following function can be used to enable this wakeup mode:</p>
+</div>
+</div>
+<div class="section" id="power-down-of-rtc-peripherals-and-memories">
+<h2>Power-down of RTC peripherals and memories<a class="headerlink" href="#power-down-of-rtc-peripherals-and-memories" title="Permalink to this headline">¶</a></h2>
+<p>By default, <code class="docutils literal"><span class="pre">esp_deep_sleep_start</span></code> and <code class="docutils literal"><span class="pre">esp_light_sleep_start</span></code> functions will power down all RTC power domains which are not needed by the enabled wakeup sources. To override this behaviour, <code class="docutils literal"><span class="pre">esp_sleep_pd_config</span></code> function is provided.</p>
+<p>Note: in revision 0 of the ESP32, RTC fast memory will always be kept enabled in deep sleep, so that the deep sleep stub can run after reset. This can be overriden, if the application doesn’t need clean reset behaviour after deep sleep.</p>
+<p>If some variables in the program are placed into RTC slow memory (for example, using <code class="docutils literal"><span class="pre">RTC_DATA_ATTR</span></code> attribute), RTC slow memory will be kept powered on by default. This can be overriden using <code class="docutils literal"><span class="pre">esp_sleep_pd_config</span></code> function, if desired.</p>
+</div>
+<div class="section" id="entering-light-sleep">
+<h2>Entering light sleep<a class="headerlink" href="#entering-light-sleep" title="Permalink to this headline">¶</a></h2>
+<p>The following function can be used to enter light sleep once wakeup sources are configured. It is also possible to go into light sleep with no wakeup sources configured, in this case the chip will be in light sleep mode indefinetly, until external reset is applied.</p>
+</div>
+<div class="section" id="entering-deep-sleep">
+<h2>Entering deep sleep<a class="headerlink" href="#entering-deep-sleep" title="Permalink to this headline">¶</a></h2>
+<p>The following function can be used to enter deep sleep once wakeup sources are configured. It is also possible to go into deep sleep with no wakeup sources configured, in this case the chip will be in deep sleep mode indefinetly, until external reset is applied.</p>
+</div>
+<div class="section" id="checking-sleep-wakeup-cause">
+<h2>Checking sleep wakeup cause<a class="headerlink" href="#checking-sleep-wakeup-cause" title="Permalink to this headline">¶</a></h2>
+<p>The following function can be used to check which wakeup source has triggered wakeup from sleep mode. For touch pad and ext1 wakeup sources, it is possible to identify pin or touch pad which has caused wakeup.</p>
+</div>
+<div class="section" id="application-example">
+<h2>Application Example<a class="headerlink" href="#application-example" title="Permalink to this headline">¶</a></h2>
+<p>Implementation of basic functionality of deep sleep is shown in <a href="#id1"><span class="problematic" id="id2">:example:`protocols/sntp`</span></a> example, where ESP module is periodically waken up to retrive time from NTP server.</p>
+<p>More extensive example in <a href="#id3"><span class="problematic" id="id4">:example:`system/deep_sleep`</span></a> illustrates usage of various deep sleep wakeup triggers and ULP coprocessor programming.</p>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cairin Michie.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.8',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

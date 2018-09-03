@@ -1,0 +1,273 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>SDMMC Host Peripheral &mdash; Fluss API 1.0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Fluss API 1.0.8 documentation" href="../../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fluss API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">SDMMC Host Peripheral</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#application-example">Application Example</a></li>
+<li><a class="reference internal" href="#protocol-layer-apis">Protocol layer APIs</a></li>
+<li><a class="reference internal" href="#sdmmc-host-driver-apis">SDMMC host driver APIs</a></li>
+<li><a class="reference internal" href="#sd-spi-driver-apis">SD SPI driver APIs</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fluss API</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>SDMMC Host Peripheral</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api-reference/storage/sdmmc.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="sdmmc-host-peripheral">
+<h1>SDMMC Host Peripheral<a class="headerlink" href="#sdmmc-host-peripheral" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>SDMMC peripheral supports SD and MMC memory cards and SDIO cards. SDMMC software builds on top of SDMMC driver and consists of the following parts:</p>
+<ol class="arabic simple">
+<li>SDMMC host driver (<code class="docutils literal"><span class="pre">driver/sdmmc_host.h</span></code>) — this driver provides APIs to send commands to the slave device(s), send and receive data, and handling error conditions on the bus.</li>
+<li>SDMMC protocol layer (<code class="docutils literal"><span class="pre">sdmmc_cmd.h</span></code>) — this component handles specifics of SD protocol such as card initialization and data transfer commands. Despite the name, only SD (SDSC/SDHC/SDXC) cards are supported at the moment. Support for MCC/eMMC cards can be added in the future.</li>
+</ol>
+<p>Protocol layer works with the host via <code class="docutils literal"><span class="pre">sdmmc_host_t</span></code> structure. This structure contains pointers to various functions of the host.</p>
+<p>In addition to SDMMC Host peripheral, ESP32 has SPI peripherals which can also be used to work with SD cards. This is supported using a variant of the host driver, <code class="docutils literal"><span class="pre">driver/sdspi_host.h</span></code>. This driver has the same interface as SDMMC host driver, and the protocol layer can use either of two.</p>
+</div>
+<div class="section" id="application-example">
+<h2>Application Example<a class="headerlink" href="#application-example" title="Permalink to this headline">¶</a></h2>
+<p>An example which combines SDMMC driver with FATFS library is provided in <code class="docutils literal"><span class="pre">examples/storage/sd_card</span></code> directory. This example initializes the card, writes and reads data from it using POSIX and C library APIs. See README.md file in the example directory for more information.</p>
+</div>
+<div class="section" id="protocol-layer-apis">
+<h2>Protocol layer APIs<a class="headerlink" href="#protocol-layer-apis" title="Permalink to this headline">¶</a></h2>
+<p>Protocol layer is given <code class="docutils literal"><span class="pre">sdmmc_host_t</span></code> structure which describes the SD/MMC host driver, lists its capabilites, and provides pointers to functions of the driver. Protocol layer stores card-specific information in <code class="docutils literal"><span class="pre">sdmmc_card_t</span></code> structure. When sending commands to the SD/MMC host driver, protocol layer uses <code class="docutils literal"><span class="pre">sdmmc_command_t</span></code> structure to describe the command, argument, expected return value, and data to transfer, if any.</p>
+<p>Normal usage of the protocol layer is as follows:</p>
+<ol class="arabic simple">
+<li>Call the host driver functions to initialize the host (e.g. <code class="docutils literal"><span class="pre">sdmmc_host_init</span></code>, <code class="docutils literal"><span class="pre">sdmmc_host_init_slot</span></code>).</li>
+<li>Call <code class="docutils literal"><span class="pre">sdmmc_card_init</span></code> to initialize the card, passing it host driver information (<code class="docutils literal"><span class="pre">host</span></code>) and a pointer to <code class="docutils literal"><span class="pre">sdmmc_card_t</span></code> structure which will be filled in (<code class="docutils literal"><span class="pre">card</span></code>).</li>
+<li>To read and write sectors of the card, use <code class="docutils literal"><span class="pre">sdmmc_read_sectors</span></code> and <code class="docutils literal"><span class="pre">sdmmc_write_sectors</span></code>, passing the pointer to card information structure (<code class="docutils literal"><span class="pre">card</span></code>).</li>
+<li>When card is not used anymore, call the host driver function to disable SDMMC host peripheral and free resources allocated by the driver (e.g. <code class="docutils literal"><span class="pre">sdmmc_host_deinit</span></code>).</li>
+</ol>
+<p>Most applications need to use the protocol layer only in one task; therefore the protocol layer doesn’t implement any kind of locking on the <code class="docutils literal"><span class="pre">sdmmc_card_t</span></code> structure, or when accessing SDMMC host driver. Such locking has to be implemented in the higher layer, if necessary (e.g. in the filesystem driver).</p>
+</div>
+<div class="section" id="sdmmc-host-driver-apis">
+<h2>SDMMC host driver APIs<a class="headerlink" href="#sdmmc-host-driver-apis" title="Permalink to this headline">¶</a></h2>
+<p>On the ESP32, SDMMC host peripheral has two slots:</p>
+<ul class="simple">
+<li>Slot 0 (<code class="docutils literal"><span class="pre">SDMMC_HOST_SLOT_0</span></code>) is an 8-bit slot. It uses <code class="docutils literal"><span class="pre">HS1_*</span></code> signals in the PIN MUX.</li>
+<li>Slot 1 (<code class="docutils literal"><span class="pre">SDMMC_HOST_SLOT_1</span></code>) is a 4-bit slot. It uses <code class="docutils literal"><span class="pre">HS2_*</span></code> signals in the PIN MUX.</li>
+</ul>
+<p>Card Detect and Write Protect signals can be routed to arbitrary pins using GPIO matrix. To use these pins, set <code class="docutils literal"><span class="pre">gpio_cd</span></code> and <code class="docutils literal"><span class="pre">gpio_wp</span></code> members of <code class="docutils literal"><span class="pre">sdmmc_slot_config_t</span></code> structure when calling <code class="docutils literal"><span class="pre">sdmmc_host_init_slot</span></code>.</p>
+<p>Of all the funtions listed below, only <code class="docutils literal"><span class="pre">sdmmc_host_init</span></code>, <code class="docutils literal"><span class="pre">sdmmc_host_init_slot</span></code>, and <code class="docutils literal"><span class="pre">sdmmc_host_deinit</span></code> will be used directly by most applications. Other functions, such as <code class="docutils literal"><span class="pre">sdmmc_host_set_bus_width</span></code>, <code class="docutils literal"><span class="pre">sdmmc_host_set_card_clk</span></code>, and <code class="docutils literal"><span class="pre">sdmmc_host_do_transaction</span></code> will be called by the SD/MMC protocol layer via function pointers in <code class="docutils literal"><span class="pre">sdmmc_host_t</span></code> structure.</p>
+</div>
+<div class="section" id="sd-spi-driver-apis">
+<h2>SD SPI driver APIs<a class="headerlink" href="#sd-spi-driver-apis" title="Permalink to this headline">¶</a></h2>
+<p>SPI controllers accessible via spi_master driver (HSPI, VSPI) can be used to work with SD cards. In SPI mode, SD driver has lower throughput than in 1-line SD mode. However SPI mode makes pin selection more flexible, as SPI peripheral can be connected to any ESP32 pins using GPIO Matrix. SD SPI driver uses software controlled CS signal. Currently SD SPI driver assumes that it can use the SPI controller exclusively, so applications which need to share SPI bus between SD cards and other peripherals need to make sure that SD card and other devices are not used at the same time from different tasks.</p>
+<p>SD SPI driver is represented using an <code class="docutils literal"><span class="pre">sdmmc_host_t</span></code> structure initialized using <code class="docutils literal"><span class="pre">SDSPI_HOST_DEFAULT</span></code> macro. For slot initialization, <code class="docutils literal"><span class="pre">SDSPI_SLOT_CONFIG_DEFAULT</span></code> can be used to fill in default pin mapping, which is the same as the pin mapping in SD mode.</p>
+<p>SD SPI driver APIs are very similar to SDMMC host APIs. As with the SDMMC host driver, only <code class="docutils literal"><span class="pre">sdspi_host_init</span></code>, <code class="docutils literal"><span class="pre">sdspi_host_init_slot</span></code>, and <code class="docutils literal"><span class="pre">sdspi_host_deinit</span></code> functions are normally used by the applications. Other functions are called by the protocol level driver via function pointers in <code class="docutils literal"><span class="pre">sdmmc_host_t</span></code> structure.</p>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cairin Michie.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.8',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

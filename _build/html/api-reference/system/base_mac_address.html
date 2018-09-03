@@ -1,0 +1,301 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Base MAC address &mdash; Fluss API 1.0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Fluss API 1.0.8 documentation" href="../../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fluss API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Base MAC address</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a><ul>
+<li><a class="reference internal" href="#id1">Base MAC address</a></li>
+<li><a class="reference internal" href="#number-of-universally-administered-mac-address">Number of universally administered MAC address</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#api-reference">API Reference</a><ul>
+<li><a class="reference internal" href="#header-files">Header Files</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fluss API</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>Base MAC address</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api-reference/system/base_mac_address.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="base-mac-address">
+<h1>Base MAC address<a class="headerlink" href="#base-mac-address" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>Serveral MAC addresses (universally administered by IEEE) are uniquely assigned to the networking interfaces (WiFi/BT/Ethernet).
+The final octet of each universally administered MAC address increases by one. Only the first one which is called base MAC address
+of them is stored in EFUSE or external storage, the others are generated from it. Here, ‘generate’ means adding 0, 1, 2 and 3
+(respectively) to the final octet of the base MAC address.</p>
+<p>If the universally administered MAC addresses are not enough for all of the networking interfaces. Local administered MAC addresses
+which are derived from universally administered MAC addresses are assigned to the reset of networking interfaces.</p>
+<p>A <a class="reference external" href="https://en.wikipedia.org/wiki/MAC_address#Universal_vs._local">definition of local vs universal MAC address can be found on Wikipedia</a>.</p>
+<p>The number of universally administered MAC address can be configured using <code class="docutils literal"><span class="pre">make</span> <span class="pre">menuconfig</span></code>.</p>
+<div class="section" id="id1">
+<h3>Base MAC address<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>If using the default base MAC address factory programmed by Espressif in BLK0 of EFUSE, nothing needs to be done.</p>
+<p>If using a custom base MAC address stored in BLK3 of EFUSE, call API <code class="docutils literal"><span class="pre">esp_efuse_mac_get_custom()</span></code> to get the base MAC address
+which is stored in BLK3 of EFUSE. If correct MAC address is returned, then call <code class="docutils literal"><span class="pre">esp_base_mac_addr_set()</span></code> to set the base MAC
+address for system to generate the MAC addresses used by the networking interfaces(WiFi/BT/Ethernet).
+There are 192 bits storage spaces for custom to store base MAC address in BLK3 of EFUSE. They are EFUSE_BLK3_RDATA0,
+EFUSE_BLK3_RDATA1, EFUSE_BLK3_RDATA2, EFUSE_BLK3_RDATA3, EFUSE_BLK3_RDATA4 and EFUSE_BLK3_RDATA5, each of them is 32 bits
+register. The format of the 192 bits storage spaces is:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>------------------------------------------------------
+Field       |Bits |Range     |Description
+------------------------------------------------------
+version     |8    |[191:184] |1: useful. 0: useless
+------------------------------------------------------
+reserve     |112  |[183:72]  |reserved
+------------------------------------------------------
+mac address |64   |[71:8]    |base MAC address
+------------------------------------------------------
+mac crc     |8    |[7:0]     |crc of base MAC address
+------------------------------------------------------
+</pre></div>
+</div>
+<p>If using base MAC address stored in external storage, firstly get the base MAC address stored in external storage, then call
+API <code class="docutils literal"><span class="pre">esp_base_mac_addr_set()</span></code> to set the base MAC address for system to generate the MAC addresses used by the networking
+interfaces(WiFi/BT/Ethernet).</p>
+<p>All of the steps must be done before initializing the networking interfaces(WiFi/BT/Ethernet). It is recommended to do it in
+<code class="docutils literal"><span class="pre">app_main()</span></code> which can be referenced in <a href="#id2"><span class="problematic" id="id3">:example:`system/base_mac_address`</span></a>.</p>
+</div>
+<div class="section" id="number-of-universally-administered-mac-address">
+<h3>Number of universally administered MAC address<a class="headerlink" href="#number-of-universally-administered-mac-address" title="Permalink to this headline">¶</a></h3>
+<p>If the number of universal MAC addresses is two, only two interfaces (WiFi station and Bluetooth) receive a universally
+administered MAC address. These are generated sequentially by adding 0 and 1 (respectively) to the base MAC address.
+The remaining two interfaces (WiFi softap and Ethernet) receive local MAC addresses. These are derived from the universal
+WiFi station and Bluetooth MAC addresses, respectively.</p>
+<p>If the number of universal MAC addresses is four, all four interfaces (WiFi station, WiFi softap, Bluetooth and Ethernet)
+receive a universally administered MAC address. These are generated sequentially by adding 0, 1, 2 and 3 (respectively)
+to the final octet of the base MAC address.</p>
+<p>When using the default (Espressif-assigned) base MAC address, either setting can be used. When using a custom universal MAC
+address range, the correct setting will depend on the allocation of MAC addresses in this range (either 2 or 4 per device.)</p>
+</div>
+</div>
+<div class="section" id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="header-files">
+<h3>Header Files<a class="headerlink" href="#header-files" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><a href="#id4"><span class="problematic" id="id5">:component_file:`esp32/include/esp_system.h`</span></a></li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cairin Michie.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.8',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

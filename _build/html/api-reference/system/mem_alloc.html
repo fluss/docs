@@ -1,0 +1,293 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Heap Memory Allocation &mdash; Fluss API 1.0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Fluss API 1.0.8 documentation" href="../../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fluss API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Heap Memory Allocation</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#special-uses">Special Uses</a><ul>
+<li><a class="reference internal" href="#dma-capable-memory">DMA-Capable Memory</a></li>
+<li><a class="reference internal" href="#bit-accessible-memory">32-Bit Accessible Memory</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#api-reference-heap-allocation">API Reference - Heap Allocation</a></li>
+<li><a class="reference internal" href="#heap-tracing-debugging">Heap Tracing &amp; Debugging</a></li>
+<li><a class="reference internal" href="#api-reference-initialisation">API Reference - Initialisation</a></li>
+<li><a class="reference internal" href="#implementation-notes">Implementation Notes</a></li>
+<li><a class="reference internal" href="#api-reference-multi-heap-api">API Reference - Multi Heap API</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fluss API</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>Heap Memory Allocation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api-reference/system/mem_alloc.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="heap-memory-allocation">
+<h1>Heap Memory Allocation<a class="headerlink" href="#heap-memory-allocation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The ESP32 has multiple types of RAM. Internally, there’s IRAM, DRAM as well as RAM that can be used as both. It’s also
+possible to connect external SPI RAM to the ESP32 - external RAM can be integrated into the ESP32’s memory map using
+the flash cache.</p>
+<p>For most purposes, the standard libc <code class="docutils literal"><span class="pre">malloc()</span></code> and <code class="docutils literal"><span class="pre">free()</span></code> functions can be used for heap allocation without any
+issues.</p>
+<p>However, in order to fully make use of all of the memory types and their characteristics, esp-idf also has a
+capabilities-based heap memory allocator. If you want to have memory with certain properties (for example, DMA-capable
+memory, or executable memory), you can create an OR-mask of the required capabilities and pass that to
+<code class="xref cpp cpp-func docutils literal"><span class="pre">heap_caps_malloc()</span></code>. For instance, the standard <code class="docutils literal"><span class="pre">malloc()</span></code> implementation internally allocates memory via
+<code class="docutils literal"><span class="pre">heap_caps_malloc(size,</span> <span class="pre">MALLOC_CAP_8BIT)</span></code> in order to get data memory that is byte-addressable.</p>
+<p>Because malloc uses this allocation system as well, memory allocated using <code class="xref cpp cpp-func docutils literal"><span class="pre">heap_caps_malloc()</span></code> can be freed by calling
+the standard <code class="docutils literal"><span class="pre">free()</span></code> function.</p>
+<p>The “soc” component contains a list of memory regions for the chip, along with the type of each memory (aka its tag) and the associated capabilities for that memory type. On startup, a separate heap is initialised for each contiguous memory region. The capabilities-based allocator chooses the best heap for each allocation, based on the requested capabilities.</p>
+</div>
+<div class="section" id="special-uses">
+<h2>Special Uses<a class="headerlink" href="#special-uses" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="dma-capable-memory">
+<h3>DMA-Capable Memory<a class="headerlink" href="#dma-capable-memory" title="Permalink to this headline">¶</a></h3>
+<p>Use the MALLOC_CAP_DMA flag to allocate memory which is suitable for use with hardware DMA engines (for example SPI and I2S). This capability flag excludes any external PSRAM.</p>
+</div>
+<div class="section" id="bit-accessible-memory">
+<h3>32-Bit Accessible Memory<a class="headerlink" href="#bit-accessible-memory" title="Permalink to this headline">¶</a></h3>
+<p>If a certain memory structure is only addressed in 32-bit units, for example an array of ints or pointers, it can be
+useful to allocate it with the MALLOC_CAP_32BIT flag. This also allows the allocator to give out IRAM memory; something
+which it can’t do for a normal malloc() call. This can help to use all the available memory in the ESP32.</p>
+<p>Memory allocated with MALLOC_CAP_32BIT can <em>only</em> be accessed via 32-bit reads and writes, any other type of access will
+generate a fatal LoadStoreError exception.</p>
+</div>
+</div>
+<div class="section" id="api-reference-heap-allocation">
+<h2>API Reference - Heap Allocation<a class="headerlink" href="#api-reference-heap-allocation" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="heap-tracing-debugging">
+<h2>Heap Tracing &amp; Debugging<a class="headerlink" href="#heap-tracing-debugging" title="Permalink to this headline">¶</a></h2>
+<p>The following features are documented on the <a class="reference internal" href="heap_debug.html"><span class="doc">Heap Memory Debugging</span></a> page:</p>
+<ul class="simple">
+<li><a class="reference internal" href="heap_debug.html#heap-information"><span class="std std-ref">Heap Information</span></a> (free space, etc.)</li>
+<li><a class="reference internal" href="heap_debug.html#heap-corruption"><span class="std std-ref">Heap Corruption Detection</span></a></li>
+<li><a class="reference internal" href="heap_debug.html#heap-tracing"><span class="std std-ref">Heap Tracing</span></a> (memory leak detection, monitoring, etc.)</li>
+</ul>
+</div>
+<div class="section" id="api-reference-initialisation">
+<h2>API Reference - Initialisation<a class="headerlink" href="#api-reference-initialisation" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="implementation-notes">
+<h2>Implementation Notes<a class="headerlink" href="#implementation-notes" title="Permalink to this headline">¶</a></h2>
+<p>Knowledge about the regions of memory in the chip comes from the “soc” component, which contains memory layout information for the chip.</p>
+<p>Each contiguous region of memory contains its own memory heap. The heaps are created using the <a class="reference external" href="APIReference-MultiHeapAPI">multi_heap</a> functionality. multi_heap allows any contiguous region of memory to be used as a heap.</p>
+<p>The heap capabilities allocator uses knowledge of the memory regions to initialize each individual heap. When you call a function in the heap capabilities API, it will find the most appropriate heap for the allocation (based on desired capabilities, available space, and preferences for each region’s use) and then call the multi_heap function to use the heap situation in that particular region.</p>
+</div>
+<div class="section" id="api-reference-multi-heap-api">
+<h2>API Reference - Multi Heap API<a class="headerlink" href="#api-reference-multi-heap-api" title="Permalink to this headline">¶</a></h2>
+<p>(Note: The multi heap API is used internally by the heap capabilities allocator. Most IDF programs will never need to call this API directly.)</p>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cairin Michie.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.8',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,267 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>High Resolution Timer &mdash; Fluss API 1.0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Fluss API 1.0.8 documentation" href="../../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fluss API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">High Resolution Timer</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#using-esp-timer-apis">Using <code class="docutils literal"><span class="pre">esp_timer</span></code> APIs</a></li>
+<li><a class="reference internal" href="#obtaining-current-time">Obtaining Current Time</a></li>
+<li><a class="reference internal" href="#api-reference">API Reference</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fluss API</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>High Resolution Timer</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api-reference/system/esp_timer.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="high-resolution-timer">
+<h1>High Resolution Timer<a class="headerlink" href="#high-resolution-timer" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>Although FreeRTOS provides software timers, these timers have a few limitations:</p>
+<ul class="simple">
+<li>Maximum resolution is equal to RTOS tick period</li>
+<li>Timer callbacks are dispatched from a low-priority task</li>
+</ul>
+<p>Hardware timers are free from both of the limitations, but often they are less convenient to use. For example, application components may need timer events to fire at certain times in the future, but the hardware timer only contains one “compare” value used for interrupt generation. This means that some facility needs to be built on top of the hardware timer to manage the list of pending events can dispatch the callbacks for these events as corresponding hardware interrupts happen.</p>
+<p><code class="docutils literal"><span class="pre">esp_timer</span></code> set of APIs provide such facility. Internally, <code class="docutils literal"><span class="pre">esp_timer</span></code> uses a 32-bit hardware timer (FRC1, “legacy” timer). <code class="docutils literal"><span class="pre">esp_timer</span></code> provides one-shot and periodic timers, microsecond time resolution, and 64-bit range.</p>
+<p>Timer callbacks are dispatched from a high-priority <code class="docutils literal"><span class="pre">esp_timer</span></code> task. Because all the callbacks are dispatched from the same task, it is recommended to only do the minimal possible amount of work from the callback itself, posting an event to a lower priority task using a queue instead.</p>
+</div>
+<div class="section" id="using-esp-timer-apis">
+<h2>Using <code class="docutils literal"><span class="pre">esp_timer</span></code> APIs<a class="headerlink" href="#using-esp-timer-apis" title="Permalink to this headline">¶</a></h2>
+<p>Single timer is represented by <code class="xref cpp cpp-type docutils literal"><span class="pre">esp_timer_handle_t</span></code> type. Timer has a callback function associated with it. This callback function is called from the <code class="docutils literal"><span class="pre">esp_timer</span></code> task each time the timer elapses.</p>
+<ul class="simple">
+<li>To create a timer, call <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_timer_create()</span></code>.</li>
+<li>To delete the timer when it is no longer needed, call <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_timer_delete()</span></code>.</li>
+</ul>
+<p>The timer can be started in one-shot mode or in periodic mode.</p>
+<ul class="simple">
+<li>To start the timer in one-shot mode, call <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_timer_start_once()</span></code>, passing the time interval after which the callback should be called. When the callback gets called, the timer is considered to be stopped.</li>
+<li>To start the timer in periodic mode, call <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_timer_start_periodic()</span></code>, passing the period with which the callback should be called. The timer keeps running until <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_timer_stop()</span></code> is called.</li>
+</ul>
+<p>Note that the timer must not be running when <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_timer_start_once()</span></code> or <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_timer_start_periodic()</span></code> is called. To restart a running timer, call <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_timer_stop()</span></code> first, then call one of the start functions.</p>
+</div>
+<div class="section" id="obtaining-current-time">
+<h2>Obtaining Current Time<a class="headerlink" href="#obtaining-current-time" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal"><span class="pre">esp_timer</span></code> also provides a convenience function to obtain the time passed since start-up, with microsecond precision: <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_timer_get_time()</span></code>. This function returns the number of microseconds since <code class="docutils literal"><span class="pre">esp_timer</span></code> was initialized, which usually happens shortly before <code class="docutils literal"><span class="pre">app_main</span></code> function is called.</p>
+<p>Unlike <cite>gettimeofday</cite> function, values returned by <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_timer_get_time()</span></code>:</p>
+<ul class="simple">
+<li>Start from zero after the chip wakes up from deep sleep</li>
+<li>Do not have timezone or DST adjustments applied</li>
+</ul>
+</div>
+<div class="section" id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cairin Michie.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.8',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

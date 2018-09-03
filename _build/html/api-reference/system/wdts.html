@@ -1,0 +1,325 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Watchdogs &mdash; Fluss API 1.0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Fluss API 1.0.8 documentation" href="../../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fluss API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Watchdogs</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a><ul>
+<li><a class="reference internal" href="#interrupt-watchdog">Interrupt watchdog</a></li>
+<li><a class="reference internal" href="#task-watchdog-timer">Task Watchdog Timer</a></li>
+<li><a class="reference internal" href="#jtag-and-watchdogs">JTAG and watchdogs</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#interrupt-watchdog-api-reference">Interrupt Watchdog API Reference</a><ul>
+<li><a class="reference internal" href="#header-file">Header File</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#task-watchdog-api-reference">Task Watchdog API Reference</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fluss API</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>Watchdogs</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api-reference/system/wdts.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="watchdogs">
+<h1>Watchdogs<a class="headerlink" href="#watchdogs" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The ESP-IDF has support for two types of watchdogs: The Interrupt Watchdog Timer
+and the Task Watchdog Timer (TWDT). The Interrupt Watchdog Timer and the TWDT
+can both be enabled using <code class="docutils literal"><span class="pre">make</span> <span class="pre">menuconfig</span></code>, however the TWDT can also be
+enabled during runtime. The Interrupt Watchdog is responsible for detecting
+instances where FreeRTOS task switching is blocked for a prolonged period of
+time. The TWDT is responsible for detecting instances of tasks running without
+yielding for a prolonged period.</p>
+<div class="section" id="interrupt-watchdog">
+<h3>Interrupt watchdog<a class="headerlink" href="#interrupt-watchdog" title="Permalink to this headline">¶</a></h3>
+<p>The interrupt watchdog makes sure the FreeRTOS task switching interrupt isn’t blocked for a long time. This
+is bad because no other tasks, including potentially important ones like the WiFi task and the idle task,
+can’t get any CPU runtime. A blocked task switching interrupt can happen because a program runs into an
+infinite loop with interrupts disabled or hangs in an interrupt.</p>
+<p>The default action of the interrupt watchdog is to invoke the panic handler. causing a register dump and an opportunity
+for the programmer to find out, using either OpenOCD or gdbstub, what bit of code is stuck with interrupts
+disabled. Depending on the configuration of the panic handler, it can also blindly reset the CPU, which may be
+preferred in a production environment.</p>
+<p>The interrupt watchdog is built around the hardware watchdog in timer group 1. If this watchdog for some reason
+cannot execute the NMI handler that invokes the panic handler (e.g. because IRAM is overwritten by garbage),
+it will hard-reset the SOC.</p>
+</div>
+<div class="section" id="task-watchdog-timer">
+<h3>Task Watchdog Timer<a class="headerlink" href="#task-watchdog-timer" title="Permalink to this headline">¶</a></h3>
+<p>The Task Watchdog Timer (TWDT) is responsible for detecting instances of tasks
+running for a prolonged period of time without yielding. This is a symptom of
+CPU starvation and is usually caused by a higher priority task looping without
+yielding to a lower-priority task thus starving the lower priority task from
+CPU time. This can be an indicator of poorly written code that spinloops on a
+peripheral, or a task that is stuck in an infinite loop.</p>
+<p>By default the TWDT will watch the Idle Tasks of each CPU, however any task can
+elect to be watched by the TWDT. Each watched task must ‘reset’ the TWDT
+periodically to indicate that they have been allocated CPU time. If a task does
+not reset within the TWDT timeout period, a warning will be printed with
+information about which tasks failed to reset the TWDT in time and which
+tasks are currently running on the ESP32 CPUs and.</p>
+<p>The TWDT is built around the Hardware Watchdog Timer in Timer Group 0. The TWDT
+can be initialized by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_task_wdt_init()</span></code> which will configure
+the hardware timer. A task can then subscribe to the TWDT using
+<code class="xref cpp cpp-func docutils literal"><span class="pre">esp_task_wdt_add()</span></code> in order to be watched. Each subscribed task must
+periodically call <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_task_wdt_reset()</span></code> to reset the TWDT. Failure by
+any subscribed tasks to periodically call <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_task_wdt_reset()</span></code>
+indicates that one or more tasks have been starved of CPU time or are stuck in a
+loop somewhere.</p>
+<p>A watched task can be unsubscribed from the TWDT using
+<code class="xref cpp cpp-func docutils literal"><span class="pre">esp_task_wdt_delete()</span></code>. A task that has been unsubscribed should no
+longer call <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_task_wdt_reset()</span></code>. Once all tasks have unsubscribed
+form the TWDT, the TWDT can be deinitialized by calling
+<code class="xref cpp cpp-func docutils literal"><span class="pre">esp_task_wdt_deinit()</span></code>.</p>
+<p>By default <span class="xref std std-ref">CONFIG_TASK_WDT</span> in <code class="docutils literal"><span class="pre">make</span> <span class="pre">menuconfig</span></code> will be enabled causing
+the TWDT to be initialized automatically during startup. Likewise
+<span class="xref std std-ref">CONFIG_TASK_WDT_CHECK_IDLE_TASK_CPU0</span> and
+<span class="xref std std-ref">CONFIG_TASK_WDT_CHECK_IDLE_TASK_CPU1</span> are also enabled by default causing
+the two Idle Tasks to be subscribed to the TWDT during startup.</p>
+</div>
+<div class="section" id="jtag-and-watchdogs">
+<h3>JTAG and watchdogs<a class="headerlink" href="#jtag-and-watchdogs" title="Permalink to this headline">¶</a></h3>
+<p>While debugging using OpenOCD, the CPUs will be halted every time a breakpoint
+is reached. However if the watchdog timers continue to run when a breakpoint is
+encountered, they will eventually trigger a reset making it very difficult to
+debug code. Therefore OpenOCD will disable the hardware timers of both the
+interrupt and task watchdogs at every breakpoint. Moreover, OpenOCD will not
+reenable them upon leaving the breakpoint. This means that interrupt watchdog
+and task watchdog functionality will essentially be disabled. No warnings or
+panics from either watchdogs will be generated when the ESP32 is connected to
+OpenOCD via JTAG.</p>
+</div>
+</div>
+<div class="section" id="interrupt-watchdog-api-reference">
+<h2>Interrupt Watchdog API Reference<a class="headerlink" href="#interrupt-watchdog-api-reference" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="header-file">
+<h3>Header File<a class="headerlink" href="#header-file" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><a href="#id1"><span class="problematic" id="id2">:component_file:`esp32/include/esp_int_wdt.h`</span></a></li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="task-watchdog-api-reference">
+<h2>Task Watchdog API Reference<a class="headerlink" href="#task-watchdog-api-reference" title="Permalink to this headline">¶</a></h2>
+<p>A full example using the Task Watchdog is available in esp-idf: <a href="#id3"><span class="problematic" id="id4">:example:`system/task_watchdog`</span></a></p>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cairin Michie.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.8',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

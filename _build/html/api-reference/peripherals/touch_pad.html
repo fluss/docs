@@ -1,0 +1,368 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Touch Sensor &mdash; Fluss API 1.0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Fluss API 1.0.8 documentation" href="../../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fluss API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Touch Sensor</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#functionality-overview">Functionality Overview</a><ul>
+<li><a class="reference internal" href="#initialization">Initialization</a></li>
+<li><a class="reference internal" href="#configuration">Configuration</a></li>
+<li><a class="reference internal" href="#touch-state-measurements">Touch State Measurements</a></li>
+<li><a class="reference internal" href="#optimization-of-measurements">Optimization of Measurements</a></li>
+<li><a class="reference internal" href="#filtering-of-measurements">Filtering of Measurements</a></li>
+<li><a class="reference internal" href="#touch-detection">Touch Detection</a></li>
+<li><a class="reference internal" href="#touch-triggered-interrupts">Touch Triggered Interrupts</a></li>
+<li><a class="reference internal" href="#wakeup-from-sleep-mode">Wakeup from Sleep Mode</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#application-examples">Application Examples</a></li>
+<li><a class="reference internal" href="#api-reference">API Reference</a><ul>
+<li><a class="reference internal" href="#gpio-lookup-macros">GPIO Lookup Macros</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fluss API</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>Touch Sensor</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api-reference/peripherals/touch_pad.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="touch-sensor">
+<h1>Touch Sensor<a class="headerlink" href="#touch-sensor" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>A touch-sensor system is built on a substrate which carries electrodes and relevant connections under a protective flat surface. When a user touches the surface, the capacitance variation is triggered and a binary signal is generated to indicate whether the touch is valid.</p>
+<p>ESP32 can provide up to 10 capacitive touch pads / GPIOs. The sensing pads can be arranged in different combinations (e.g. matrix, slider), so that a larger area or more points can be detected. The touch pad sensing process is under the control of a hardware-implemented finite-state machine (FSM) which is initiated by software or a dedicated hardware timer.</p>
+<p>Design, operation and control registers of touch sensor are discussed in <a class="reference external" href="https://espressif.com/sites/default/files/documentation/esp32_technical_reference_manual_en.pdf">ESP32 Technical Reference Manual</a> (PDF). Please refer to it for additional details how this subsystem works.</p>
+</div>
+<div class="section" id="functionality-overview">
+<h2>Functionality Overview<a class="headerlink" href="#functionality-overview" title="Permalink to this headline">¶</a></h2>
+<p>Description of API is broken down into groups of functions to provide quick overview of features like:</p>
+<ul class="simple">
+<li>Initialization of touch pad driver</li>
+<li>Configuration of touch pad GPIO pins</li>
+<li>Taking measurements</li>
+<li>Adjusting parameters of measurements</li>
+<li>Filtering measurements</li>
+<li>Touch detection methods</li>
+<li>Setting up interrupts to report touch detection</li>
+<li>Waking up from sleep mode on interrupt</li>
+</ul>
+<p>For detailed description of particular function please go to section <a class="reference internal" href="#touch-pad-api-reference"><span class="std std-ref">API Reference</span></a>. Practical implementation of this API is covered in section <a class="reference internal" href="#touch-pad-api-examples"><span class="std std-ref">Application Examples</span></a>.</p>
+<div class="section" id="initialization">
+<h3>Initialization<a class="headerlink" href="#initialization" title="Permalink to this headline">¶</a></h3>
+<p>Touch pad driver should be initialized before use by calling function <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_init()</span></code>. This function sets several <code class="docutils literal"><span class="pre">.._DEFAULT</span></code> driver parameters listed in <a class="reference internal" href="#touch-pad-api-reference"><span class="std std-ref">API Reference</span></a> under “Macros”. It also clears information what pads have been touched before (if any) and disables interrupts.</p>
+<p>If not required anymore, driver can be disabled by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_deinit()</span></code>.</p>
+</div>
+<div class="section" id="configuration">
+<h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
+<p>Enabling of touch sensor functionality for particular GPIO is done with <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_config()</span></code>.</p>
+<p>The function <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_set_fsm_mode()</span></code> is used to select whether touch pad measurement (operated by FSM) is started automatically by hardware timer, or by software. If software mode is selected, then use <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_sw_start()</span></code> to start of the FSM.</p>
+</div>
+<div class="section" id="touch-state-measurements">
+<h3>Touch State Measurements<a class="headerlink" href="#touch-state-measurements" title="Permalink to this headline">¶</a></h3>
+<p>The following two functions come handy to read raw or filtered measurements from the sensor:</p>
+<ul class="simple">
+<li><code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_read()</span></code></li>
+<li><code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_read_filtered()</span></code></li>
+</ul>
+<p>They may be used to characterize particular touch pad design by checking the range of sensor readings when a pad is touched or released. This information can be then used to establish the touch threshold.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Start and configure filter before using <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_read_filtered()</span></code> by calling specific filter functions described down below.</p>
+</div>
+<p>To see how to use both read functions check <a href="#id1"><span class="problematic" id="id2">:example:`peripherals/touch_pad_read`</span></a> application example.</p>
+</div>
+<div class="section" id="optimization-of-measurements">
+<h3>Optimization of Measurements<a class="headerlink" href="#optimization-of-measurements" title="Permalink to this headline">¶</a></h3>
+<p>Touch sensor has several configurable parameters to match characteristics of particular touch pad design. For instance, to sense smaller capacity changes, it is possible to narrow the reference voltage range within which the touch pads are charged / discharged. The high and low reference voltages are set using function <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_set_voltage()</span></code>. A positive side effect, besides ability to discern smaller capacity changes, will be reduction of power consumption for low power applications. A likely negative effect will be increase of measurement noise. If dynamic rage of obtained readings is still satisfactory, then further reduction of power consumption may be done by lowering the measurement time with <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_set_meas_time()</span></code>.</p>
+<p>The following summarizes available measurement parameters and corresponding ‘set’ functions:</p>
+<ul>
+<li><p class="first">Touch pad charge / discharge parameters:</p>
+<blockquote>
+<div><ul class="simple">
+<li>voltage range: <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_set_voltage()</span></code></li>
+<li>speed (slope): <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_set_cnt_mode()</span></code></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">Measure time: <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_set_meas_time()</span></code></p>
+</li>
+</ul>
+<p>Relationship between voltage range (high / low reference voltages), speed (slope) and measure time is shown on figure below.</p>
+<div class="align-center figure" id="id9">
+<img alt="Touch Pad - relationship between measurement parameters" src="api-reference/peripherals/../../_static/touch_pad-measurement-parameters.jpg" />
+<p class="caption"><span class="caption-text">Touch Pad - relationship between measurement parameters</span></p>
+</div>
+<p>The last chart “Output” represents the touch sensor reading, i.e. the count of pulses collected within measure time.</p>
+<p>All functions are provided in pairs to ‘set’ specific parameter and to ‘get’ the current parameter’s value, e.g. <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_set_voltage()</span></code> and <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_get_voltage()</span></code>.</p>
+</div>
+<div class="section" id="filtering-of-measurements">
+<span id="touch-pad-api-filtering-of-measurements"></span><h3>Filtering of Measurements<a class="headerlink" href="#filtering-of-measurements" title="Permalink to this headline">¶</a></h3>
+<p>If measurements are noisy, you may filter them with provided API. The filter should be started before first use by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_filter_start()</span></code>.</p>
+<p>The filter type is IIR (Infinite Impulse Response) and it has configurable period that can be set with function <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_set_filter_period()</span></code>.</p>
+<p>You can stop the filter with <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_filter_stop()</span></code>. If not required anymore, the filter may be deleted by invoking <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_filter_delete()</span></code>.</p>
+</div>
+<div class="section" id="touch-detection">
+<h3>Touch Detection<a class="headerlink" href="#touch-detection" title="Permalink to this headline">¶</a></h3>
+<p>Touch detection is implemented in ESP32’s hardware basing on user configured threshold and raw measurements executed by FSM. Use function <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_get_status()</span></code> to check what pads have been touched and <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_clear_status()</span></code> to clear the touch status information.</p>
+<p>Hardware touch detection may be also wired to interrupts and this is described in next section.</p>
+<p>If measurements are noisy and capacity changes small, then hardware touch detection may be not reliable. To resolve this issue, instead of using hardware detection / provided interrupts, implement measurement filtering and perform touch detection in your own application. See <a href="#id3"><span class="problematic" id="id4">:example:`peripherals/touch_pad_interrupt`</span></a> for sample implementation of both methods of touch detection.</p>
+</div>
+<div class="section" id="touch-triggered-interrupts">
+<h3>Touch Triggered Interrupts<a class="headerlink" href="#touch-triggered-interrupts" title="Permalink to this headline">¶</a></h3>
+<p>Before enabling an interrupt on touch detection, user should establish touch detection threshold. Use functions described above to read and display sensor measurements when pad is touched and released. Apply a filter when measurements are noisy and relative changes are small. Depending on your application and environmental conditions, test the influence of temperature and power supply voltage changes on measured values.</p>
+<p>Once detection threshold is established, it may be set on initialization with <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_config()</span></code> or at the runtime with <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_set_thresh()</span></code>.</p>
+<p>In next step configure how interrupts are triggered. They may be triggered below or above threshold and this is set with function <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_set_trigger_mode()</span></code>.</p>
+<p>Finally configure and manage interrupt calls using the following functions:</p>
+<ul class="simple">
+<li><code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_isr_register()</span></code> / <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_isr_deregister()</span></code></li>
+<li><code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_intr_enable()</span></code> / <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_intr_disable()</span></code></li>
+</ul>
+<p>When interrupts are operational, you can obtain information what particular pad triggered interrupt by invoking <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_get_status()</span></code> and clear pad status with <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_clear_status()</span></code>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Interrupts on touch detection operate on raw / unfiltered measurements checked against user established threshold and are implemented in hardware. Enabling software filtering API (see <a class="reference internal" href="#touch-pad-api-filtering-of-measurements"><span class="std std-ref">Filtering of Measurements</span></a>) does not affect this process.</p>
+</div>
+</div>
+<div class="section" id="wakeup-from-sleep-mode">
+<h3>Wakeup from Sleep Mode<a class="headerlink" href="#wakeup-from-sleep-mode" title="Permalink to this headline">¶</a></h3>
+<p>If touch pad interrupts are used to wakeup the chip from a sleep mode, then user can select certain configuration of pads (SET1 or both SET1 and SET2), that should be touched to trigger the interrupt and cause subsequent wakeup. To do so, use function <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_set_trigger_source()</span></code>.</p>
+<p>Configuration of required bit patterns of pads may be managed for each ‘SET’ with:</p>
+<ul class="simple">
+<li><code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_set_group_mask()</span></code> / <code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_get_group_mask()</span></code></li>
+<li><code class="xref cpp cpp-func docutils literal"><span class="pre">touch_pad_clear_group_mask()</span></code></li>
+</ul>
+</div>
+</div>
+<div class="section" id="application-examples">
+<span id="touch-pad-api-examples"></span><h2>Application Examples<a class="headerlink" href="#application-examples" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Touch sensor read example: <a href="#id5"><span class="problematic" id="id6">:example:`peripherals/touch_pad_read`</span></a>.</li>
+<li>Touch sensor interrupt example: <a href="#id7"><span class="problematic" id="id8">:example:`peripherals/touch_pad_interrupt`</span></a>.</li>
+</ul>
+</div>
+<div class="section" id="api-reference">
+<span id="touch-pad-api-reference"></span><h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="gpio-lookup-macros">
+<h3>GPIO Lookup Macros<a class="headerlink" href="#gpio-lookup-macros" title="Permalink to this headline">¶</a></h3>
+<p>Some useful macros can be used to specified the GPIO number of a touchpad channel, or vice versa.
+e.g.</p>
+<ol class="arabic simple">
+<li><code class="docutils literal"><span class="pre">TOUCH_PAD_NUM5_GPIO_NUM</span></code> is the GPIO number of channel 5 (12);</li>
+<li><code class="docutils literal"><span class="pre">TOUCH_PAD_GPIO4_CHANNEL</span></code> is the channel number of GPIO 4 (channel 0).</li>
+</ol>
+</div>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cairin Michie.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.8',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

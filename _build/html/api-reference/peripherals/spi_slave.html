@@ -1,0 +1,315 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>SPI Slave driver &mdash; Fluss API 1.0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Fluss API 1.0.8 documentation" href="../../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fluss API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">SPI Slave driver</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a><ul>
+<li><a class="reference internal" href="#the-spi-slave-driver">The spi_slave driver</a></li>
+<li><a class="reference internal" href="#terminology">Terminology</a></li>
+<li><a class="reference internal" href="#spi-transactions">SPI transactions</a></li>
+<li><a class="reference internal" href="#using-the-spi-slave-driver">Using the spi_slave driver</a></li>
+<li><a class="reference internal" href="#transaction-data-and-master-slave-length-mismatches">Transaction data and master/slave length mismatches</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#application-example">Application Example</a></li>
+<li><a class="reference internal" href="#api-reference">API Reference</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fluss API</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>SPI Slave driver</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api-reference/peripherals/spi_slave.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="spi-slave-driver">
+<h1>SPI Slave driver<a class="headerlink" href="#spi-slave-driver" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The ESP32 has four SPI peripheral devices, called SPI0, SPI1, HSPI and VSPI. SPI0 is entirely dedicated to
+the flash cache the ESP32 uses to map the SPI flash device it is connected to into memory. SPI1 is
+connected to the same hardware lines as SPI0 and is used to write to the flash chip. HSPI and VSPI
+are free to use, and with the spi_slave driver, these can be used as a SPI slave, driven from a
+connected SPI master.</p>
+<div class="section" id="the-spi-slave-driver">
+<h3>The spi_slave driver<a class="headerlink" href="#the-spi-slave-driver" title="Permalink to this headline">¶</a></h3>
+<p>The spi_slave driver allows using the HSPI and/or VSPI peripheral as a full-duplex SPI slave. It can make
+use of DMA to send/receive transactions of arbitrary length.</p>
+</div>
+<div class="section" id="terminology">
+<h3>Terminology<a class="headerlink" href="#terminology" title="Permalink to this headline">¶</a></h3>
+<p>The spi_slave driver uses the following terms:</p>
+<ul class="simple">
+<li>Host: The SPI peripheral inside the ESP32 initiating the SPI transmissions. One of HSPI or VSPI.</li>
+<li>Bus: The SPI bus, common to all SPI devices connected to a master. In general the bus consists of the
+miso, mosi, sclk and optionally quadwp and quadhd signals. The SPI slaves are connected to these
+signals in parallel. Each  SPI slave is also connected to one CS signal.<ul>
+<li>miso - Also known as q, this is the output of the serial stream from the ESP32 to the SPI master</li>
+<li>mosi - Also known as d, this is the output of the serial stream from the SPI master to the ESP32</li>
+<li>sclk - Clock signal. Each data bit is clocked out or in on the positive or negative edge of this signal</li>
+<li>cs - Chip Select. An active Chip Select delineates a single transaction to/from a slave.</li>
+</ul>
+</li>
+<li>Transaction: One instance of CS going active, data transfer from and to a master happening, and
+CS going inactive again. Transactions are atomic, as in they will never be interrupted by another
+transaction.</li>
+</ul>
+</div>
+<div class="section" id="spi-transactions">
+<h3>SPI transactions<a class="headerlink" href="#spi-transactions" title="Permalink to this headline">¶</a></h3>
+<p>A full-duplex SPI transaction starts with the master pulling CS low. After this happens, the master
+starts sending out clock pulses on the CLK line: every clock pulse causes a data bit to be shifted from
+the master to the slave on the MOSI line and vice versa on the MISO line. At the end of the transaction,
+the master makes CS high again.</p>
+</div>
+<div class="section" id="using-the-spi-slave-driver">
+<h3>Using the spi_slave driver<a class="headerlink" href="#using-the-spi-slave-driver" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Initialize a SPI peripheral as a slave by calling <code class="docutils literal"><span class="pre">spi_slave_initialize</span></code>. Make sure to set the
+correct IO pins in the <code class="docutils literal"><span class="pre">bus_config</span></code> struct. Take care to set signals that are not needed to -1.
+A DMA channel (either 1 or 2) must be given if transactions will be larger than 32 bytes, if not
+the dma_chan parameter may be 0.</li>
+<li>To set up a transaction, fill one or more spi_transaction_t structure with any transaction
+parameters you need. Either queue all transactions by calling <code class="docutils literal"><span class="pre">spi_slave_queue_trans</span></code>, later
+quering the result using <code class="docutils literal"><span class="pre">spi_slave_get_trans_result</span></code>, or handle all requests synchroneously
+by feeding them into <code class="docutils literal"><span class="pre">spi_slave_transmit</span></code>. The latter two  functions will block until the
+master has initiated and finished a transaction, causing the queued data to be sent and received.</li>
+<li>Optional: to unload the SPI slave driver, call <code class="docutils literal"><span class="pre">spi_slave_free</span></code>.</li>
+</ul>
+</div>
+<div class="section" id="transaction-data-and-master-slave-length-mismatches">
+<h3>Transaction data and master/slave length mismatches<a class="headerlink" href="#transaction-data-and-master-slave-length-mismatches" title="Permalink to this headline">¶</a></h3>
+<p>Normally, data to be transferred to or from a device will be read from or written to a chunk of memory
+indicated by the <code class="docutils literal"><span class="pre">rx_buffer</span></code> and <code class="docutils literal"><span class="pre">tx_buffer</span></code> members of the transaction structure. The SPI driver
+may decide to use DMA for transfers, so these buffers should be allocated in DMA-capable memory using
+<code class="docutils literal"><span class="pre">pvPortMallocCaps(size,</span> <span class="pre">MALLOC_CAP_DMA)</span></code>.</p>
+<p>The amount of data written to the buffers is limited by the <code class="docutils literal"><span class="pre">length</span></code> member of the transaction structure:
+the driver will never read/write more data than indicated there. The <code class="docutils literal"><span class="pre">length</span></code> cannot define the actual
+length of the SPI transaction; this is determined by the master as it drives the clock and CS lines. The actual length
+transferred can be read from the <code class="docutils literal"><span class="pre">trans_len</span></code> member of the <code class="docutils literal"><span class="pre">spi_slave_transaction_t</span></code> structure after transaction.
+In case the length of the transmission is larger than the buffer length, only the start of the transmission
+will be sent and received, and the <code class="docutils literal"><span class="pre">trans_len</span></code> is set to <code class="docutils literal"><span class="pre">length</span></code> instead of the actual length. It’s recommended to
+set <code class="docutils literal"><span class="pre">length</span></code> longer than the maximum length expected if the <code class="docutils literal"><span class="pre">trans_len</span></code> is required.  In case the transmission
+length is shorter than the buffer length, only data up to the length of the buffer will be exchanged.</p>
+<p>Warning: Due to a design peculiarity in the ESP32, if the amount of bytes sent by the master or the length
+of the transmission queues in the slave driver, in bytes, is not both larger than eight and dividable by
+four, the SPI hardware can fail to write the last one to seven bytes to the receive buffer.</p>
+</div>
+</div>
+<div class="section" id="application-example">
+<h2>Application Example<a class="headerlink" href="#application-example" title="Permalink to this headline">¶</a></h2>
+<p>Slave/master communication: <a href="#id1"><span class="problematic" id="id2">:example:`peripherals/spi_slave`</span></a>.</p>
+</div>
+<div class="section" id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cairin Michie.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.8',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

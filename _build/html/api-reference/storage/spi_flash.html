@@ -1,0 +1,268 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>See also &mdash; Fluss API 1.0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Fluss API 1.0.8 documentation" href="../../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fluss API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">See also</a></li>
+<li><a class="reference internal" href="#implementation-details">Implementation details</a></li>
+<li><a class="reference internal" href="#api-reference-spi-flash">API Reference - SPI Flash</a></li>
+<li><a class="reference internal" href="#api-reference-partition-table">API Reference - Partition Table</a></li>
+<li><a class="reference internal" href="#api-reference-flash-encrypt">API Reference - Flash Encrypt</a></li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fluss API</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>See also</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api-reference/storage/spi_flash.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="see-also">
+<h1>See also<a class="headerlink" href="#see-also" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><span class="xref std std-doc">Partition Table documentation</span></li>
+<li><a class="reference internal" href="../system/ota.html"><span class="doc">Over The Air Update (OTA) API</span></a> provides high-level API for updating app firmware stored in flash.</li>
+<li><a class="reference internal" href="nvs_flash.html"><span class="doc">Non-Volatile Storage (NVS) API</span></a> provides a structured API for storing small items of data in SPI flash.</li>
+</ul>
+</div>
+<div class="section" id="implementation-details">
+<span id="spi-flash-implementation-details"></span><h1>Implementation details<a class="headerlink" href="#implementation-details" title="Permalink to this headline">¶</a></h1>
+<p>In order to perform some flash operations, we need to make sure both CPUs
+are not running any code from flash for the duration of the flash operation.
+In a single-core setup this is easy: we disable interrupts/scheduler and do
+the flash operation. In the dual-core setup this is slightly more complicated.
+We need to make sure that the other CPU doesn’t run any code from flash.</p>
+<p>When SPI flash API is called on CPU A (can be PRO or APP), we start
+spi_flash_op_block_func function on CPU B using esp_ipc_call API. This API
+wakes up high priority task on CPU B and tells it to execute given function,
+in this case spi_flash_op_block_func. This function disables cache on CPU B and
+signals that cache is disabled by setting s_flash_op_can_start flag.
+Then the task on CPU A disables cache as well, and proceeds to execute flash
+operation.</p>
+<p>While flash operation is running, interrupts can still run on CPUs A and B.
+We assume that all interrupt code is placed into RAM. Once interrupt allocation
+API is added, we should add a flag to request interrupt to be disabled for
+the duration of flash operations.</p>
+<p>Once flash operation is complete, function on CPU A sets another flag,
+s_flash_op_complete, to let the task on CPU B know that it can re-enable
+cache and release the CPU. Then the function on CPU A re-enables the cache on
+CPU A as well and returns control to the calling code.</p>
+<p>Additionally, all API functions are protected with a mutex (s_flash_op_mutex).</p>
+<p>In a single core environment (CONFIG_FREERTOS_UNICORE enabled), we simply
+disable both caches, no inter-CPU communication takes place.</p>
+</div>
+<div class="section" id="api-reference-spi-flash">
+<h1>API Reference - SPI Flash<a class="headerlink" href="#api-reference-spi-flash" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="api-reference-partition-table">
+<h1>API Reference - Partition Table<a class="headerlink" href="#api-reference-partition-table" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="api-reference-flash-encrypt">
+<h1>API Reference - Flash Encrypt<a class="headerlink" href="#api-reference-flash-encrypt" title="Permalink to this headline">¶</a></h1>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cairin Michie.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.8',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

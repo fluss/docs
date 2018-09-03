@@ -3,18 +3,30 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Fluss API's documentation!
-=====================================
+Fluss API documentation
+=======================
+
+This is the documentation for the Fluss API. The Fluss API is the official development framework for `Fluss <http://fluss.io>`_.
+
+
+
+
+.. _API Reference: api-reference/index.html
+
+
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :hidden:
 
-
+   API Reference <api-reference/index>
+   Resources <resources>
+   Copyrights <COPYRIGHT>
+   About <about>
 
 Indices and tables
 ==================
 
+* `API Reference`_
 * :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. * :ref:`modindex`
+.. * :ref:`search`

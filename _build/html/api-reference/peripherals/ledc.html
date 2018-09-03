@@ -1,0 +1,357 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>LED Control &mdash; Fluss API 1.0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Fluss API 1.0.8 documentation" href="../../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fluss API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">LED Control</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#functionality-overview">Functionality Overview</a><ul>
+<li><a class="reference internal" href="#configure-timer">Configure Timer</a></li>
+<li><a class="reference internal" href="#configure-channel">Configure Channel</a></li>
+<li><a class="reference internal" href="#change-pwm-signal">Change PWM Signal</a><ul>
+<li><a class="reference internal" href="#change-pwm-duty-by-software">Change PWM Duty by Software</a></li>
+<li><a class="reference internal" href="#change-pwm-duty-with-hardware-fading">Change PWM Duty with Hardware Fading</a></li>
+<li><a class="reference internal" href="#change-pwm-frequency">Change PWM Frequency</a></li>
+<li><a class="reference internal" href="#more-control-over-pwm">More Control Over PWM</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#use-interrupts">Use Interrupts</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ledc-high-and-low-speed-mode">LEDC High and Low Speed Mode</a></li>
+<li><a class="reference internal" href="#supported-range-of-frequency-and-duty-resolution">Supported Range of Frequency and Duty Resolution</a></li>
+<li><a class="reference internal" href="#application-example">Application Example</a></li>
+<li><a class="reference internal" href="#api-reference">API Reference</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fluss API</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>LED Control</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api-reference/peripherals/ledc.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="led-control">
+<h1>LED Control<a class="headerlink" href="#led-control" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>The LED control (LEDC) module is primarily designed to control the intensity of LEDs, although it can be used to generate PWM signals for other purposes as well. It has 16 channels which can generate independent waveforms, that can be used to drive e.g. RGB LED devices.</p>
+<p>Half of all LEDC’s channels provide high speed mode of operation. This mode offers implemented in hardware, automatic and glitch free change of PWM duty cycle. The other half of channels operate in a low speed mode, where the moment of change depends on the application software. Each group of channels is also able to use different clock sources but this feature is not implemented in the API.</p>
+<p>The PWM controller also has the ability to automatically increase or decrease the duty cycle gradually, allowing for fades without any processor interference.</p>
+</div>
+<div class="section" id="functionality-overview">
+<h2>Functionality Overview<a class="headerlink" href="#functionality-overview" title="Permalink to this headline">¶</a></h2>
+<p>Getting LEDC to work on specific channel in either <a class="reference internal" href="#ledc-api-high-low-speed-mode"><span class="std std-ref">high or low speed mode</span></a> is done in three steps:</p>
+<ol class="arabic simple">
+<li><a class="reference internal" href="#ledc-api-configure-timer"><span class="std std-ref">Configure Timer</span></a> to determine PWM signal’s frequency and the a number (resolution of duty range).</li>
+<li><a class="reference internal" href="#ledc-api-configure-channel"><span class="std std-ref">Configure Channel</span></a> by associating it with the timer and GPIO to output the PWM signal.</li>
+<li><a class="reference internal" href="#ledc-api-change-pwm-signal"><span class="std std-ref">Change PWM Signal</span></a> that drives the output to change LED’s intensity. This may be done under full control by software or with help of hardware fading functions.</li>
+</ol>
+<p>In an optional step it is also possible to set up an interrupt on the fade end.</p>
+<div class="align-center figure" id="id3">
+<img alt="Key Settings of LED PWM Controller's API" src="api-reference/peripherals/../../_static/ledc-api-settings.jpg" />
+<p class="caption"><span class="caption-text">Key Settings of LED PWM Controller’s API</span></p>
+</div>
+<div class="section" id="configure-timer">
+<span id="ledc-api-configure-timer"></span><h3>Configure Timer<a class="headerlink" href="#configure-timer" title="Permalink to this headline">¶</a></h3>
+<p>Setting of the timer is done by calling function <code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_timer_config()</span></code>. This function should be provided with a data structure <code class="xref cpp cpp-type docutils literal"><span class="pre">ledc_timer_config_t</span></code> that contains the following configuration settings:</p>
+<blockquote>
+<div><ul class="simple">
+<li>The timer number <code class="xref cpp cpp-type docutils literal"><span class="pre">ledc_timer_t</span></code> and a speed mode <code class="xref cpp cpp-type docutils literal"><span class="pre">ledc_mode_t</span></code>.</li>
+<li>The PWM signal’s frequency and resolution of PWM’s duty value changes.</li>
+</ul>
+</div></blockquote>
+<p>The frequency and the duty resolution are interdependent. The higher the PWM frequency, the lower duty resolution is available and vice versa. This relationship may became important, if you are planning to use this API for purposes other that changing intensity of LEDs. Check section <a class="reference internal" href="#ledc-api-supported-range-frequency-duty-resolution"><span class="std std-ref">Supported Range of Frequency and Duty Resolution</span></a> for more details.</p>
+</div>
+<div class="section" id="configure-channel">
+<span id="ledc-api-configure-channel"></span><h3>Configure Channel<a class="headerlink" href="#configure-channel" title="Permalink to this headline">¶</a></h3>
+<p>Having set up the timer, the next step is to configure selected channel (one out of <code class="xref cpp cpp-type docutils literal"><span class="pre">ledc_channel_t</span></code>). This is done by calling function <code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_channel_config()</span></code>.</p>
+<p>In similar way, like with the timer configuration, the channel setup function should be provided with specific structure <code class="xref cpp cpp-type docutils literal"><span class="pre">ledc_channel_config_t</span></code>, that contains channel’s configuration parameters.</p>
+<p>At this point channel should became operational and start generating PWM signal of frequency determined by the timer settings and the duty on selected GPIO, as configured in <code class="xref cpp cpp-type docutils literal"><span class="pre">ledc_channel_config_t</span></code>. The channel operation / the signal generation may be suspended at any time by calling function <code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_stop()</span></code>.</p>
+</div>
+<div class="section" id="change-pwm-signal">
+<span id="ledc-api-change-pwm-signal"></span><h3>Change PWM Signal<a class="headerlink" href="#change-pwm-signal" title="Permalink to this headline">¶</a></h3>
+<p>Once the channel is operational and generating the PWM signal of constant duty and frequency, there are couple of ways to change this signal. When driving LEDs we are changing primarily the duty to vary the light intensity. See the two section below how to change the duty by software or with hardware fading. If required, we can change signal’s frequency as well and this is covered in section <a class="reference internal" href="#ledc-api-change-pwm-frequency"><span class="std std-ref">Change PWM Frequency</span></a>.</p>
+<div class="section" id="change-pwm-duty-by-software">
+<h4>Change PWM Duty by Software<a class="headerlink" href="#change-pwm-duty-by-software" title="Permalink to this headline">¶</a></h4>
+<p>Setting of the duty is done by first calling dedicated function <code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_set_duty()</span></code> and then calling <code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_update_duty()</span></code> to make the change effective. To check the value currently set, there is a corresponding <code class="docutils literal"><span class="pre">_get_</span></code> function <code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_get_duty()</span></code>.</p>
+<p>Another way to set the duty, and some other channel parameters as well, is by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_channel_config()</span></code> discussed in the previous section.</p>
+<p>The range of the duty value entered into functions depends on selected <code class="docutils literal"><span class="pre">duty_resolution</span></code> and should be from 0 to (2 ** duty_resolution) - 1. For example, if selected duty resolution is 10, then the duty range is from 0 to 1023. This provides the resolution of ~0.1%.</p>
+</div>
+<div class="section" id="change-pwm-duty-with-hardware-fading">
+<h4>Change PWM Duty with Hardware Fading<a class="headerlink" href="#change-pwm-duty-with-hardware-fading" title="Permalink to this headline">¶</a></h4>
+<p>The LEDC hardware provides the means to gradually fade from one duty value to another. To use this functionality first enable fading with <code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_fade_func_install()</span></code>. Then configure it by calling one of available fading functions:</p>
+<ul class="simple">
+<li><code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_set_fade_with_time()</span></code></li>
+<li><code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_set_fade_with_step()</span></code></li>
+<li><code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_set_fade()</span></code></li>
+</ul>
+<p>Finally start fading with <code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_fade_start()</span></code>.</p>
+<p>If not required anymore, fading and associated interrupt may be disabled with <code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_fade_func_uninstall()</span></code>.</p>
+</div>
+<div class="section" id="change-pwm-frequency">
+<span id="ledc-api-change-pwm-frequency"></span><h4>Change PWM Frequency<a class="headerlink" href="#change-pwm-frequency" title="Permalink to this headline">¶</a></h4>
+<p>The LEDC API provides several means to change the PWM frequency “on the fly”.</p>
+<blockquote>
+<div><ul class="simple">
+<li>One of options is to call <code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_set_freq()</span></code>. There is a corresponding function <code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_get_freq()</span></code> to check what frequency is currently set.</li>
+<li>Another option to change the frequency, and the duty resolution as well, is by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_bind_channel_timer()</span></code> to bind other timer to the channel.</li>
+<li>Finally the channel’s timer may be changed by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_channel_config()</span></code>.</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="more-control-over-pwm">
+<h4>More Control Over PWM<a class="headerlink" href="#more-control-over-pwm" title="Permalink to this headline">¶</a></h4>
+<p>There are couple of lower level timer specific functions, that may be used to provide additional means to change the PWM settings:</p>
+<ul class="simple">
+<li><code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_timer_set()</span></code></li>
+<li><code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_timer_rst()</span></code></li>
+<li><code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_timer_pause()</span></code></li>
+<li><code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_timer_resume()</span></code></li>
+</ul>
+<p>The first two functions are called “behind the scenes” by <code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_channel_config()</span></code> to provide “clean” start up of a timer after is it configured.</p>
+</div>
+</div>
+<div class="section" id="use-interrupts">
+<h3>Use Interrupts<a class="headerlink" href="#use-interrupts" title="Permalink to this headline">¶</a></h3>
+<p>When configuring a LEDC channel, one of parameters selected within <code class="xref cpp cpp-type docutils literal"><span class="pre">ledc_channel_config_t</span></code> is <code class="xref cpp cpp-type docutils literal"><span class="pre">ledc_intr_type_t</span></code> and allows to enable an interrupt on fade completion.</p>
+<p>Registration of a handler to service this interrupt is done by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_isr_register()</span></code>.</p>
+</div>
+</div>
+<div class="section" id="ledc-high-and-low-speed-mode">
+<span id="ledc-api-high-low-speed-mode"></span><h2>LEDC High and Low Speed Mode<a class="headerlink" href="#ledc-high-and-low-speed-mode" title="Permalink to this headline">¶</a></h2>
+<p>Out of the total 8 timers and 16 channels available in the LED PWM Controller, half of them are dedicated to operate in the high speed mode and the other half in the low speed mode. Selection of the low or high speed “capable” timer or the channel is done with parameter <code class="xref cpp cpp-type docutils literal"><span class="pre">ledc_mode_t</span></code> that is present in applicable function calls.</p>
+<p>The advantage of the high speed mode is h/w supported, glitch-free changeover of the timer settings. This means that if the timer settings are modified, the changes will be applied automatically after the next overflow interrupt of the timer. In contrast, when updating the low-speed timer, the change of settings should be specifically triggered by software. The LEDC API is doing it “behind the scenes”, e.g. when <code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_timer_config()</span></code> or <code class="xref cpp cpp-func docutils literal"><span class="pre">ledc_timer_set()</span></code> is called.</p>
+<p>For additional details regarding speed modes please refer to <a class="reference external" href="https://espressif.com/sites/default/files/documentation/esp32_technical_reference_manual_en.pdf">ESP32 Technical Reference Manual</a> (PDF). Note that support for <code class="docutils literal"><span class="pre">SLOW_CLOCK</span></code> mentioned in this manual is not implemented in the LEDC API.</p>
+</div>
+<div class="section" id="supported-range-of-frequency-and-duty-resolution">
+<span id="ledc-api-supported-range-frequency-duty-resolution"></span><h2>Supported Range of Frequency and Duty Resolution<a class="headerlink" href="#supported-range-of-frequency-and-duty-resolution" title="Permalink to this headline">¶</a></h2>
+<p>The LED PWM Controller is designed primarily to drive LEDs and provides wide resolution of PWM duty settings. For instance for the PWM frequency at 5 kHz, the maximum duty resolution is 13 bits. It means that the duty may be set anywhere from 0 to 100% with resolution of ~0.012% (13 ** 2 = 8192 discrete levels of the LED intensity).</p>
+<p>The LEDC may be used for providing signals at much higher frequencies to clock other devices, e.g. a digital camera module. In such a case the maximum available frequency is 40 MHz with duty resolution of 1 bit. This means that duty is fixed at 50% and cannot be adjusted.</p>
+<p>The API is designed to report an error when trying to set a frequency and a duty resolution that is out of the range of LEDC’s hardware. For example, an attempt to set the frequency at 20 MHz and the duty resolution of 3 bits will result in the following error reported on a serial monitor:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>E (196) ledc: requested frequency and duty resolution can not be achieved, try reducing freq_hz or duty_resolution. div_param=128
+</pre></div>
+</div>
+<p>In such a case either the duty resolution or the frequency should be reduced. For example setting the duty resolution at 2 will resolve this issue and provide possibility to set the duty with 25% steps, i.e. at 25%, 50% or 75%.</p>
+<p>The LEDC API will also capture and report an attempt to configure frequency / duty resolution combination that is below the supported minimum, e.g.:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>E (196) ledc: requested frequency and duty resolution can not be achieved, try increasing freq_hz or duty_resolution. div_param=128000000
+</pre></div>
+</div>
+<p>Setting of the duty resolution is normally done using <code class="xref cpp cpp-type docutils literal"><span class="pre">ledc_timer_bit_t</span></code>. This enumeration covers the range from 10 to 15 bits. If a smaller duty resolution is required (below 10 down to 1), enter the equivalent numeric values directly.</p>
+</div>
+<div class="section" id="application-example">
+<h2>Application Example<a class="headerlink" href="#application-example" title="Permalink to this headline">¶</a></h2>
+<p>The LEDC change duty cycle and fading control example: <a href="#id1"><span class="problematic" id="id2">:example:`peripherals/ledc`</span></a>.</p>
+</div>
+<div class="section" id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cairin Michie.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.8',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

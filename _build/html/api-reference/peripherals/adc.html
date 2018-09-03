@@ -1,0 +1,388 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Analog to Digital Converter &mdash; Fluss API 1.0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Fluss API 1.0.8 documentation" href="../../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fluss API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Analog to Digital Converter</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#configuration-and-reading-adc">Configuration and Reading ADC</a></li>
+<li><a class="reference internal" href="#application-examples">Application Examples</a></li>
+<li><a class="reference internal" href="#adc-calibration">ADC Calibration</a></li>
+<li><a class="reference internal" href="#example-of-reading-calibrated-values">Example of Reading Calibrated Values</a></li>
+<li><a class="reference internal" href="#gpio-lookup-macros">GPIO Lookup Macros</a></li>
+<li><a class="reference internal" href="#api-reference">API Reference</a><ul>
+<li><a class="reference internal" href="#adc-driver">ADC driver</a></li>
+<li><a class="reference internal" href="#adc-api-reference-adc-calibration">ADC Calibration</a></li>
+<li><a class="reference internal" href="#adc-api-reference-gpio-lookup-macros">GPIO Lookup Macros</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fluss API</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>Analog to Digital Converter</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api-reference/peripherals/adc.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="analog-to-digital-converter">
+<h1>Analog to Digital Converter<a class="headerlink" href="#analog-to-digital-converter" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>ESP32 integrates two 12-bit SAR (<a class="reference external" href="https://en.wikipedia.org/wiki/Successive_approximation_ADC">Successive Approximation Register</a>) ADCs (Analog to Digital Converters) and supports measurements on 18 channels (analog enabled pins). Some of these pins can be used to build a programmable gain amplifier which is used for the measurement of small analog signals.</p>
+<p>The ADC driver API supports ADC1 (9 channels, attached to GPIOs 32 - 39), and ADC2 (10 channels, attached to GPIOs 0, 2, 4, 12 - 15 and 25 - 27).
+However, there’re some restrictions for the application to use ADC2:</p>
+<ol class="arabic simple">
+<li>The application can use ADC2 only when Wi-Fi driver is not started, since the ADC is also used by the Wi-Fi driver, which has higher priority.</li>
+<li>Some of the ADC2 pins are used as strapping pins (GPIO 0, 2, 15), so they cannot be used freely. For examples, for official Develop Kits:</li>
+</ol>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference external" href="http://esp-idf.readthedocs.io/en/latest/hw-reference/modules-and-boards.html#esp32-core-board-v2-esp32-devkitc">ESP32 Core Board V2 / ESP32 DevKitC</a>: GPIO 0 cannot be used due to external auto program circuits.</li>
+<li><a class="reference external" href="http://esp-idf.readthedocs.io/en/latest/hw-reference/modules-and-boards.html#esp-wrover-kit-v3">ESP-WROVER-KIT V3</a>: GPIO 0, 2, 4 and 15 cannot be used due to external connections for different purposes.</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="configuration-and-reading-adc">
+<h2>Configuration and Reading ADC<a class="headerlink" href="#configuration-and-reading-adc" title="Permalink to this headline">¶</a></h2>
+<p>The ADC should be configured before reading is taken.</p>
+<blockquote>
+<div><ul class="simple">
+<li>For ADC1, configure desired precision and attenuation by calling functions <code class="xref cpp cpp-func docutils literal"><span class="pre">adc1_config_width()</span></code> and <code class="xref cpp cpp-func docutils literal"><span class="pre">adc1_config_channel_atten()</span></code>.</li>
+<li>For ADC2, configure the attenuation by <code class="xref cpp cpp-func docutils literal"><span class="pre">adc2_config_channel_atten()</span></code>. The reading width of ADC2 is configured every time you take the reading.</li>
+</ul>
+</div></blockquote>
+<p>Attenuation configuration is done per channel, see <code class="xref cpp cpp-type docutils literal"><span class="pre">adc1_channel_t</span></code> and <code class="xref cpp cpp-type docutils literal"><span class="pre">adc2_channel_t</span></code>, set as a parameter of above functions.</p>
+<p>Then it is possible to read ADC conversion result with <code class="xref cpp cpp-func docutils literal"><span class="pre">adc1_get_raw()</span></code> and <code class="xref cpp cpp-func docutils literal"><span class="pre">adc2_get_raw()</span></code>. Reading width of ADC2 should be set as a parameter of <code class="xref cpp cpp-func docutils literal"><span class="pre">adc2_get_raw()</span></code> instead of in the configuration functions.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Since the ADC2 is shared with the WIFI module, which has higher priority, reading operation of <code class="xref cpp cpp-func docutils literal"><span class="pre">adc2_get_raw()</span></code> will fail between <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_wifi_start()</span></code> and <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_wifi_stop()</span></code>. Use the return code to see whether the reading is successful.</p>
+</div>
+<p>It is also possible to read the internal hall effect sensor via ADC1 by calling dedicated function <code class="xref cpp cpp-func docutils literal"><span class="pre">hall_sensor_read()</span></code>. Note that even the hall sensor is internal to ESP32, reading from it uses channels 0 and 3 of ADC1 (GPIO 36 and 39). Do not connect anything else to these pins and do not change their configuration. Otherwise it may affect the measurement of low value signal from the sesnor.</p>
+<p>This API provides convenient way to configure ADC1 for reading from <span class="xref std std-doc">ULP</span>. To do so, call function <code class="xref cpp cpp-func docutils literal"><span class="pre">adc1_ulp_enable()</span></code> and then set precision and attenuation as discussed above.</p>
+<p>There is another specific function <code class="xref cpp cpp-func docutils literal"><span class="pre">adc2_vref_to_gpio()</span></code> used to route internal reference voltage to a GPIO pin. It comes handy to calibrate ADC reading and this is discussed in section <a class="reference internal" href="#adc-api-adc-calibration"><span class="std std-ref">ADC Calibration</span></a>.</p>
+</div>
+<div class="section" id="application-examples">
+<h2>Application Examples<a class="headerlink" href="#application-examples" title="Permalink to this headline">¶</a></h2>
+<p>Reading voltage on ADC1 channel 0 (GPIO 36):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#include &lt;driver/adc.h&gt;</span>
+
+<span class="o">...</span>
+
+    <span class="n">adc1_config_width</span><span class="p">(</span><span class="n">ADC_WIDTH_BIT_12</span><span class="p">);</span>
+    <span class="n">adc1_config_channel_atten</span><span class="p">(</span><span class="n">ADC1_CHANNEL_0</span><span class="p">,</span><span class="n">ADC_ATTEN_DB_0</span><span class="p">);</span>
+    <span class="nb">int</span> <span class="n">val</span> <span class="o">=</span> <span class="n">adc1_get_raw</span><span class="p">(</span><span class="n">ADC1_CHANNEL_0</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The input voltage in above example is from 0 to 1.1V (0 dB attenuation). The input range can be extended by setting higher attenuation, see <code class="xref cpp cpp-type docutils literal"><span class="pre">adc_atten_t</span></code>.
+An example using the ADC driver including calibration (discussed below) is available in esp-idf: <a href="#id1"><span class="problematic" id="id2">:example:`peripherals/adc`</span></a></p>
+<p>Reading voltage on ADC2 channel 7 (GPIO 27):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#include &lt;driver/adc.h&gt;</span>
+
+<span class="o">...</span>
+
+    <span class="nb">int</span> <span class="n">read_raw</span><span class="p">;</span>
+    <span class="n">adc2_config_channel_atten</span><span class="p">(</span> <span class="n">ADC2_CHANNEL_7</span><span class="p">,</span> <span class="n">ADC_ATTEN_0db</span> <span class="p">);</span>
+
+    <span class="n">esp_err_t</span> <span class="n">r</span> <span class="o">=</span> <span class="n">adc2_get_raw</span><span class="p">(</span> <span class="n">ADC2_CHANNEL_7</span><span class="p">,</span> <span class="n">ADC_WIDTH_12Bit</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">read_raw</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span> <span class="n">r</span> <span class="o">==</span> <span class="n">ESP_OK</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">read_raw</span> <span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span> <span class="n">r</span> <span class="o">==</span> <span class="n">ESP_ERR_TIMEOUT</span> <span class="p">)</span> <span class="p">{</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s2">&quot;ADC2 used by Wi-Fi.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+<p>The reading may fail due to collision with Wi-Fi, should check it.
+An example using the ADC2 driver to read the output of DAC is available in esp-idf: <a href="#id3"><span class="problematic" id="id4">:example:`peripherals/adc2`</span></a></p>
+<p>Reading the internal hall effect sensor:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#include &lt;driver/adc.h&gt;</span>
+
+<span class="o">...</span>
+
+    <span class="n">adc1_config_width</span><span class="p">(</span><span class="n">ADC_WIDTH_BIT_12</span><span class="p">);</span>
+    <span class="nb">int</span> <span class="n">val</span> <span class="o">=</span> <span class="n">hall_sensor_read</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>The value read in both these examples is 12 bits wide (range 0-4095).</p>
+</div>
+<div class="section" id="adc-calibration">
+<span id="adc-api-adc-calibration"></span><h2>ADC Calibration<a class="headerlink" href="#adc-calibration" title="Permalink to this headline">¶</a></h2>
+<p>The <a href="#id5"><span class="problematic" id="id6">:component_file:`esp_adc_cal/include/esp_adc_cal.h`</span></a> API provides functions to correct for differences in measured voltages caused by non-ideal ADC reference voltages in ESP32s. The ideal ADC reference voltage is 1100 mV however the reference voltage of different ESP32s can range from 1000 mV to 1200 mV.</p>
+<p>Correcting the measured voltage using this API involves referencing a lookup table of voltages. The voltage obtained from the lookup table is then scaled and shifted by a gain and offset factor that is based on the ADC’s reference voltage. This is done with function <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_adc_cal_get_characteristics()</span></code>.</p>
+<p>The reference voltage of the ADCs can be routed to certain GPIOs and measured manually using the ADC driver’s <code class="xref cpp cpp-func docutils literal"><span class="pre">adc2_vref_to_gpio()</span></code> function.</p>
+</div>
+<div class="section" id="example-of-reading-calibrated-values">
+<h2>Example of Reading Calibrated Values<a class="headerlink" href="#example-of-reading-calibrated-values" title="Permalink to this headline">¶</a></h2>
+<p>Reading the ADC and obtaining a result in mV:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#include &lt;driver/adc.h&gt;</span>
+<span class="c1">#include &lt;esp_adc_cal.h&gt;</span>
+
+<span class="o">...</span>
+    <span class="c1">#define V_REF 1100  // ADC reference voltage</span>
+
+    <span class="o">//</span> <span class="n">Configure</span> <span class="n">ADC</span>
+    <span class="n">adc1_config_width</span><span class="p">(</span><span class="n">ADC_WIDTH_12Bit</span><span class="p">);</span>
+    <span class="n">adc1_config_channel_atten</span><span class="p">(</span><span class="n">ADC1_CHANNEL_6</span><span class="p">,</span> <span class="n">ADC_ATTEN_11db</span><span class="p">);</span>
+
+    <span class="o">//</span> <span class="n">Calculate</span> <span class="n">ADC</span> <span class="n">characteristics</span> <span class="n">i</span><span class="o">.</span><span class="n">e</span><span class="o">.</span> <span class="n">gain</span> <span class="ow">and</span> <span class="n">offset</span> <span class="n">factors</span>
+    <span class="n">esp_adc_cal_characteristics_t</span> <span class="n">characteristics</span><span class="p">;</span>
+    <span class="n">esp_adc_cal_get_characteristics</span><span class="p">(</span><span class="n">V_REF</span><span class="p">,</span> <span class="n">ADC_ATTEN_DB_11</span><span class="p">,</span> <span class="n">ADC_WIDTH_BIT_12</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">characteristics</span><span class="p">);</span>
+
+    <span class="o">//</span> <span class="n">Read</span> <span class="n">ADC</span> <span class="ow">and</span> <span class="n">obtain</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">mV</span>
+    <span class="n">uint32_t</span> <span class="n">voltage</span> <span class="o">=</span> <span class="n">adc1_to_voltage</span><span class="p">(</span><span class="n">ADC1_CHANNEL_6</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">characteristics</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> mV</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">voltage</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Routing ADC reference voltage to GPIO, so it can be manually measured and entered in function <code class="xref cpp cpp-func docutils literal"><span class="pre">esp_adc_cal_get_characteristics()</span></code>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#include &lt;driver/adc.h&gt;</span>
+<span class="c1">#include &lt;driver/gpio.h&gt;</span>
+<span class="c1">#include &lt;esp_err.h&gt;</span>
+
+<span class="o">...</span>
+
+    <span class="n">esp_err_t</span> <span class="n">status</span> <span class="o">=</span> <span class="n">adc2_vref_to_gpio</span><span class="p">(</span><span class="n">GPIO_NUM_25</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">status</span> <span class="o">==</span> <span class="n">ESP_OK</span><span class="p">){</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s2">&quot;v_ref routed to GPIO</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">);</span>
+    <span class="p">}</span><span class="k">else</span><span class="p">{</span>
+        <span class="n">printf</span><span class="p">(</span><span class="s2">&quot;failed to route v_ref</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+<p>An example of using the ADC driver and obtaining calibrated measurements is available in esp-idf: <a href="#id7"><span class="problematic" id="id8">:example:`peripherals/adc`</span></a></p>
+</div>
+<div class="section" id="gpio-lookup-macros">
+<h2>GPIO Lookup Macros<a class="headerlink" href="#gpio-lookup-macros" title="Permalink to this headline">¶</a></h2>
+<p>There are macros available to specify the GPIO number of a ADC channel, or vice versa.
+e.g.</p>
+<ol class="arabic simple">
+<li><code class="docutils literal"><span class="pre">ADC1_CHANNEL_0_GPIO_NUM</span></code> is the GPIO number of ADC1 channel 0 (36);</li>
+<li><code class="docutils literal"><span class="pre">ADC1_GPIO32_CHANNEL</span></code> is the ADC1 channel number of GPIO 32 (ADC1 channel 4).</li>
+</ol>
+</div>
+<div class="section" id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
+<p>This reference covers three components:</p>
+<ul class="simple">
+<li><a class="reference internal" href="#adc-api-reference-adc-driver"><span class="std std-ref">ADC driver</span></a></li>
+<li><a class="reference internal" href="#adc-api-reference-adc-calibration"><span class="std std-ref">ADC Calibration</span></a></li>
+<li><a class="reference internal" href="#adc-api-reference-gpio-lookup-macros"><span class="std std-ref">GPIO Lookup Macros</span></a></li>
+</ul>
+<div class="section" id="adc-driver">
+<span id="adc-api-reference-adc-driver"></span><h3>ADC driver<a class="headerlink" href="#adc-driver" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="adc-api-reference-adc-calibration">
+<span id="id9"></span><h3>ADC Calibration<a class="headerlink" href="#adc-api-reference-adc-calibration" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="adc-api-reference-gpio-lookup-macros">
+<span id="id10"></span><h3>GPIO Lookup Macros<a class="headerlink" href="#adc-api-reference-gpio-lookup-macros" title="Permalink to this headline">¶</a></h3>
+</div>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cairin Michie.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.8',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,355 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>UART &mdash; Fluss API 1.0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="Fluss API 1.0.8 documentation" href="../../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> Fluss API
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">UART</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#functional-overview">Functional Overview</a><ul>
+<li><a class="reference internal" href="#setting-communication-parameters">Setting Communication Parameters</a></li>
+<li><a class="reference internal" href="#setting-communication-pins">Setting Communication Pins</a></li>
+<li><a class="reference internal" href="#driver-installation">Driver Installation</a></li>
+<li><a class="reference internal" href="#running-uart-communication">Running UART Communication</a><ul>
+<li><a class="reference internal" href="#transmitting">Transmitting</a></li>
+<li><a class="reference internal" href="#receiving">Receiving</a></li>
+<li><a class="reference internal" href="#software-flow-control">Software Flow Control</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#using-interrupts">Using Interrupts</a></li>
+<li><a class="reference internal" href="#macros">Macros</a></li>
+<li><a class="reference internal" href="#deleting-driver">Deleting Driver</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#application-examples">Application Examples</a></li>
+<li><a class="reference internal" href="#api-reference">API Reference</a><ul>
+<li><a class="reference internal" href="#gpio-lookup-macros">GPIO Lookup Macros</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Fluss API</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>UART</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/api-reference/peripherals/uart.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="uart">
+<h1>UART<a class="headerlink" href="#uart" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>An Universal Asynchronous Receiver/Transmitter (UART) is a component known to handle the timing requirements for a variety of widely-adapted protocols (RS232, RS485, RS422, …). An UART provides a widely adopted and cheap method to realize full-duplex data exchange among different devices.</p>
+<p>There are three UART controllers available on the ESP32 chip. They are compatible with UART-enabled devices from various manufacturers. All UART controllers integrated in the ESP32 feature an identical set of registers for ease of programming and flexibility. In this documentation, these controllers are referred to as UART0, UART1, and UART2.</p>
+</div>
+<div class="section" id="functional-overview">
+<h2>Functional Overview<a class="headerlink" href="#functional-overview" title="Permalink to this headline">¶</a></h2>
+<p>The following overview describes functions and data types used to establish communication between ESP32 and some other UART device. The overview reflects a typical workflow when programming ESP32’s UART driver and is broken down into the following sections:</p>
+<ol class="arabic simple">
+<li><a class="reference internal" href="#uart-api-setting-communication-parameters"><span class="std std-ref">Setting Communication Parameters</span></a> - baud rate, data bits, stop bits, etc,</li>
+<li><a class="reference internal" href="#uart-api-setting-communication-pins"><span class="std std-ref">Setting Communication Pins</span></a> - pins the other UART is connected to</li>
+<li><a class="reference internal" href="#uart-api-driver-installation"><span class="std std-ref">Driver Installation</span></a> - allocate ESP32’s resources for the UART driver</li>
+<li><a class="reference internal" href="#uart-api-running-uart-communication"><span class="std std-ref">Running UART Communication</span></a> - send / receive the data</li>
+<li><a class="reference internal" href="#uart-api-using-interrupts"><span class="std std-ref">Using Interrupts</span></a> - trigger interrupts on specific communication events</li>
+<li><a class="reference internal" href="#uart-api-deleting-driver"><span class="std std-ref">Deleting Driver</span></a> - release ESP32’s resources, if UART communication is not required anymore</li>
+</ol>
+<p>The minimum to make the UART working is to complete the first four steps, the last two steps are optional.</p>
+<p>The driver is identified by <code class="xref cpp cpp-type docutils literal"><span class="pre">uart_port_t</span></code>, that corresponds to one of the tree UART controllers. Such identification is present in all the following function calls.</p>
+<div class="section" id="setting-communication-parameters">
+<span id="uart-api-setting-communication-parameters"></span><h3>Setting Communication Parameters<a class="headerlink" href="#setting-communication-parameters" title="Permalink to this headline">¶</a></h3>
+<p>There are two ways to set the communications parameters for UART. One is to do it in one shot by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_param_config()</span></code> provided with configuration parameters in <code class="xref cpp cpp-type docutils literal"><span class="pre">uart_config_t</span></code> structure.</p>
+<p>The alternate way is to configure specific parameters individually by calling dedicated functions:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Baud rate - <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_set_baudrate()</span></code></li>
+<li>Number of transmitted bits - <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_set_word_length()</span></code> selected out of <code class="xref cpp cpp-type docutils literal"><span class="pre">uart_word_length_t</span></code></li>
+<li>Parity control - <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_set_parity()</span></code> selected out of <code class="xref cpp cpp-type docutils literal"><span class="pre">uart_parity_t</span></code></li>
+<li>Number of stop bits - <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_set_stop_bits()</span></code> selected out of <code class="xref cpp cpp-type docutils literal"><span class="pre">uart_stop_bits_t</span></code></li>
+<li>Hardware flow control mode - <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_set_hw_flow_ctrl()</span></code> selected out of <cite>uart_hw_flowcontrol_t</cite></li>
+</ul>
+</div></blockquote>
+<p>All the above functions have a <code class="docutils literal"><span class="pre">_get_</span></code> equivalent to retrieve the current setting, e.g. <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_get_baudrate()</span></code>.</p>
+</div>
+<div class="section" id="setting-communication-pins">
+<span id="uart-api-setting-communication-pins"></span><h3>Setting Communication Pins<a class="headerlink" href="#setting-communication-pins" title="Permalink to this headline">¶</a></h3>
+<p>In next step, after configuring communication parameters, we are setting physical GPIO pin numbers the other UART will be connected to. This is done in a single step by calling function <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_set_pin()</span></code> and providing it with GPIO numbers, that driver should use for the Tx, Rx, RTS and CTS signals.</p>
+<p>Instead of GPIO pin number we can enter a macro <code class="xref cpp cpp-type docutils literal"><span class="pre">UART_PIN_NO_CHANGE</span></code> and the currently allocated pin will not be changed. The same macro should be entered if certain pin will not be used.</p>
+</div>
+<div class="section" id="driver-installation">
+<span id="uart-api-driver-installation"></span><h3>Driver Installation<a class="headerlink" href="#driver-installation" title="Permalink to this headline">¶</a></h3>
+<p>Once configuration of driver is complete, we can install it by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_driver_install()</span></code>. As result several resources required by the UART will be allocated. The type / size of resources are specified as function call parameters and concern:</p>
+<blockquote>
+<div><ul class="simple">
+<li>size of the send buffer</li>
+<li>size of the receive buffer</li>
+<li>the event queue handle and size</li>
+<li>flags to allocate an interrupt</li>
+</ul>
+</div></blockquote>
+<p>If all above steps have been complete, we are ready to connect the other UART device and check the communication.</p>
+</div>
+<div class="section" id="running-uart-communication">
+<span id="uart-api-running-uart-communication"></span><h3>Running UART Communication<a class="headerlink" href="#running-uart-communication" title="Permalink to this headline">¶</a></h3>
+<p>The processes of serial communication are under control of UART’s hardware FSM. The data to be sent should be put into Tx FIFO buffer, FSM will serialize them and sent out. A similar process, but in reverse order, is done to receive the data. Incoming serial stream is processed by FSM and moved to the Rx FIFO buffer. Therefore the task of API’s communication functions is limited to writing and reading the data to / from the respective buffer. This is reflected in some function names, e.g.: <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_write_bytes()</span></code> to transmit the data out, or <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_read_bytes()</span></code> to read the incoming data.</p>
+<div class="section" id="transmitting">
+<h4>Transmitting<a class="headerlink" href="#transmitting" title="Permalink to this headline">¶</a></h4>
+<p>The basic API function to write the data to Tx FIFO buffer is <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_tx_chars()</span></code>. If the buffer contains not sent characters, this function will write what fits into the empty space and exit reporting the number of bytes actually written.</p>
+<p>There is a ‘companion’ function <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_wait_tx_done()</span></code> that waits until all the data are transmitted out and the Tx FIFO is empty.</p>
+<p>An easier to work with function is <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_write_bytes()</span></code>. It sets up an intermediate ring buffer and exits after copying the data to this buffer. When there is an empty space in the FIFO, the data are moved from the ring buffer to the FIFO in the background by an ISR.</p>
+<p>There is a similar function as above that adds a serial break signal after sending the data - <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_write_bytes_with_break()</span></code>. The ‘serial break signal’ means holding TX line low for period longer than one data frame.</p>
+</div>
+<div class="section" id="receiving">
+<h4>Receiving<a class="headerlink" href="#receiving" title="Permalink to this headline">¶</a></h4>
+<p>To retrieve the data received by UART and saved in Rx FIFO, use function <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_read_bytes()</span></code>. You can check in advance what is the number of bytes available in Rx FIFO by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_get_buffered_data_len()</span></code>.</p>
+<p>If the data in Rx FIFO is not required and should be discarded, call <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_flush()</span></code>.</p>
+</div>
+<div class="section" id="software-flow-control">
+<h4>Software Flow Control<a class="headerlink" href="#software-flow-control" title="Permalink to this headline">¶</a></h4>
+<p>When the hardware flow control is disabled, then use <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_set_rts()</span></code> and <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_set_dtr()</span></code> to manually set the levels of the RTS and DTR signals.</p>
+</div>
+</div>
+<div class="section" id="using-interrupts">
+<span id="uart-api-using-interrupts"></span><h3>Using Interrupts<a class="headerlink" href="#using-interrupts" title="Permalink to this headline">¶</a></h3>
+<p>There are nineteen interrupts reported on specific states of UART or on detected errors. The full list of available interrupts is described in <a class="reference external" href="https://espressif.com/sites/default/files/documentation/esp32_technical_reference_manual_en.pdf">ESP32 Technical Reference Manual</a> (PDF). To enable specific interrupts call <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_enable_intr_mask()</span></code>, to disable call <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_disable_intr_mask()</span></code>. The mask of all interrupts is available as <code class="xref cpp cpp-type docutils literal"><span class="pre">UART_INTR_MASK</span></code>. Registration of an handler to service interrupts is done with <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_isr_register()</span></code>, freeing the handler with <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_isr_free()</span></code>. To clear the interrupt status bits once the handler is called use <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_clear_intr_status()</span></code>.</p>
+<p>The API provides a convenient way to handle specific interrupts discussed above by wrapping them into dedicated functions:</p>
+<ul class="simple">
+<li><strong>Event detection</strong> - there are several events defined in <code class="xref cpp cpp-type docutils literal"><span class="pre">uart_event_type_t</span></code> that may be reported to user application using FreeRTOS queue functionality. You can enable this functionality when calling <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_driver_install()</span></code> described in <a class="reference internal" href="#uart-api-driver-installation"><span class="std std-ref">Driver Installation</span></a>. Example how to use it is covered in <a href="#id1"><span class="problematic" id="id2">:example:`peripherals/uart_events`</span></a>.</li>
+<li><strong>FIFO space threshold or transmission timeout reached</strong> - the interrupts on TX or Rx FIFO buffer being filled with specific number of characters or on a timeout of sending or receiving data. To use these interrupts, first configure respective threshold values of the buffer length and the timeout by entering them in <code class="xref cpp cpp-type docutils literal"><span class="pre">uart_intr_config_t</span></code> structure and calling <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_intr_config()</span></code>. Then enable interrupts with functions <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_enable_rx_intr()</span></code> and <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_enable_tx_intr()</span></code>. To disable these interrupts there are corresponding functions <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_disable_rx_intr()</span></code> or <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_disable_tx_intr()</span></code>.</li>
+<li><strong>Pattern detection</strong> - an interrupt triggered on detecting a ‘pattern’ of the same character being sent number of times. The functions that allow to configure, enable and disable this interrupt are <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_enable_pattern_det_intr()</span></code> and uart_disable_pattern_det_intr`.</li>
+</ul>
+</div>
+<div class="section" id="macros">
+<h3>Macros<a class="headerlink" href="#macros" title="Permalink to this headline">¶</a></h3>
+<p>The API provides several macros to define configuration parameters, e.g. <code class="xref cpp cpp-type docutils literal"><span class="pre">UART_FIFO_LEN</span></code> to define the length of the hardware FIFO buffers, <code class="xref cpp cpp-type docutils literal"><span class="pre">UART_BITRATE_MAX</span></code> that gives the maximum baud rate supported by UART, etc.</p>
+</div>
+<div class="section" id="deleting-driver">
+<span id="uart-api-deleting-driver"></span><h3>Deleting Driver<a class="headerlink" href="#deleting-driver" title="Permalink to this headline">¶</a></h3>
+<p>If communication is established with <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_driver_install()</span></code> for some specific period of time and then not required, the driver may be removed to free allocated resources by calling <code class="xref cpp cpp-func docutils literal"><span class="pre">uart_driver_delete()</span></code>.</p>
+</div>
+</div>
+<div class="section" id="application-examples">
+<h2>Application Examples<a class="headerlink" href="#application-examples" title="Permalink to this headline">¶</a></h2>
+<p>Configure UART settings and install UART driver to read/write using UART1 interface: <a href="#id3"><span class="problematic" id="id4">:example:`peripherals/uart_echo`</span></a>.</p>
+<p>Demonstration of how to report various communication events and how to use patern detection interrupts: <a href="#id5"><span class="problematic" id="id6">:example:`peripherals/uart_events`</span></a>.</p>
+<p>Transmitting and receiveing with the same UART in two separate FreeRTOS tasks: <a href="#id7"><span class="problematic" id="id8">:example:`peripherals/uart_async_rxtxtasks`</span></a>.</p>
+</div>
+<div class="section" id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="gpio-lookup-macros">
+<h3>GPIO Lookup Macros<a class="headerlink" href="#gpio-lookup-macros" title="Permalink to this headline">¶</a></h3>
+<p>You can use macros to specify the <strong>direct</strong> GPIO (UART module connected to pads through direct IO mux without the GPIO mux) number of a UART channel, or vice versa. The pin name can be omitted if the channel of a GPIO number is specified, e.g.:</p>
+<ol class="arabic simple">
+<li><code class="docutils literal"><span class="pre">UART_NUM_2_TXD_DIRECT_GPIO_NUM</span></code> is the GPIO number of UART channel 2 TXD pin (17);</li>
+<li><code class="docutils literal"><span class="pre">UART_GPIO19_DIRECT_CHANNEL</span></code> is the UART channel number of GPIO 19 (channel 0);</li>
+<li><code class="docutils literal"><span class="pre">UART_CTS_GPIO19_DIRECT_CHANNEL</span></code> is the UART channel number of GPIO 19, and GPIO 19 must be a CTS pin (channel 0).</li>
+</ol>
+</div>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Cairin Michie.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'1.0.8',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
